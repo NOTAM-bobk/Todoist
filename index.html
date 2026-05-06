@@ -1,1 +1,2010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tasks</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;600;700&family=PT+Serif:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Light Mode Variables */
+            --black: #000000;
+            --white: #ffffff;
+            --gray: #e5e5e5;
+            
+            --black-rgb: 0, 0, 0;
+            --white-rgb: 255, 255, 255;
+            --gray-rgb: 229, 229, 229;
+            
+            --font-family: 'Space Grotesk';
+            --border-width: 2px;
+            --radius-btn: 0px;
+            --radius-card: 0px;
+            
+            --accent: var(--black);
+            --accent-rgb: var(--black-rgb);
+        }
 
+        .theme-dark {
+            /* Dark Mode Variables */
+            --black: #ffffff;
+            --white: #121212;
+            --gray: #2d2d2d;
+            
+            --black-rgb: 255, 255, 255;
+            --white-rgb: 18, 18, 18;
+            --gray-rgb: 45, 45, 45;
+            
+            --accent: var(--black);
+            --accent-rgb: var(--black-rgb);
+        }
+
+        .theme-claude {
+            /* Claude AI Inspired Theme */
+            --black: #2d2926;
+            --white: #fdfbf7;
+            --gray: #f3efe6;
+            
+            --black-rgb: 45, 41, 38;
+            --white-rgb: 253, 251, 247;
+            --gray-rgb: 243, 239, 230;
+            
+            --border-width: 1px;
+            --radius-btn: 8px;
+            --radius-card: 12px;
+            
+            --accent: #d97757;
+            --accent-rgb: 217, 119, 87;
+        }
+
+        /* Accent Colors Options */
+        body.accent-blue { --accent: #2563eb; --accent-rgb: 37, 99, 235; }
+        body.accent-emerald { --accent: #059669; --accent-rgb: 5, 150, 105; }
+        body.accent-rose { --accent: #e11d48; --accent-rgb: 225, 29, 72; }
+
+        body {
+            font-family: var(--font-family), sans-serif;
+            background-color: var(--white);
+            color: var(--black);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Utilities */
+        .neo-border {
+            border: var(--border-width) solid var(--black);
+            border-radius: var(--radius-card);
+        }
+
+        .neo-shadow {
+            box-shadow: 4px 4px 0px 0px var(--black);
+        }
+        .theme-claude .neo-shadow {
+            box-shadow: 0 4px 12px rgba(var(--black-rgb), 0.05);
+        }
+
+        .neo-btn {
+            border: var(--border-width) solid var(--black);
+            box-shadow: 3px 3px 0px 0px var(--black);
+            border-radius: var(--radius-btn);
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s;
+            background-color: var(--white);
+            color: var(--black);
+            cursor: pointer;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .theme-claude .neo-btn {
+            border-color: rgba(var(--black-rgb), 0.2);
+            box-shadow: 0 2px 4px rgba(var(--black-rgb), 0.05);
+        }
+
+        .neo-btn.primary {
+            background-color: var(--accent);
+            color: var(--white);
+            border-color: var(--accent);
+        }
+        .theme-claude .neo-btn.primary { color: #ffffff; }
+
+        .neo-btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px 0px var(--black);
+        }
+        .theme-claude .neo-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(var(--black-rgb), 0.08);
+        }
+
+        .neo-btn:active {
+            transform: translate(3px, 3px);
+            box-shadow: 0px 0px 0px 0px var(--black);
+        }
+        .theme-claude .neo-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(var(--black-rgb), 0.05);
+        }
+
+        .neo-input {
+            border: var(--border-width) solid var(--black);
+            box-shadow: 3px 3px 0px 0px var(--black);
+            border-radius: var(--radius-btn);
+            padding: 0.75rem 1rem;
+            outline: none;
+            transition: all 0.15s ease-out;
+            background-color: rgba(var(--white-rgb), 0.8);
+            color: var(--black);
+        }
+        .theme-claude .neo-input {
+            border-color: rgba(var(--black-rgb), 0.2);
+            box-shadow: none;
+        }
+        .neo-input:focus {
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px 0px var(--accent);
+            border-color: var(--accent);
+        }
+        .theme-claude .neo-input:focus {
+            transform: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
+        }
+
+        /* Custom Checkbox - "Printed in background" style */
+        .neo-checkbox {
+            width: 24px;
+            height: 24px;
+            border: none; /* Removed box border */
+            box-shadow: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            color: rgba(var(--black-rgb), 0.2); /* Subtle outline color */
+            transition: all 0.15s ease-out;
+            flex-shrink: 0;
+        }
+        .neo-checkbox:hover {
+            color: var(--accent);
+            background: rgba(var(--accent-rgb), 0.1);
+            transform: scale(1.1);
+        }
+        .neo-checkbox:active { transform: scale(0.9); }
+        
+        .neo-checkbox.checked {
+            color: var(--accent);
+        }
+
+        /* Task Item Layout */
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            border: var(--border-width) solid var(--black);
+            border-radius: var(--radius-card);
+            background: var(--white);
+            color: var(--black);
+            margin: 0;
+            transition: box-shadow 0.15s, transform 0.15s, opacity 0.3s, padding 0.2s;
+            width: 100%;
+        }
+        .theme-claude .task-item {
+            border-color: rgba(var(--black-rgb), 0.1);
+            box-shadow: 0 2px 8px rgba(var(--black-rgb), 0.02);
+        }
+        
+        /* Compact Density */
+        body.density-compact .task-item { padding: 0.6rem 0.8rem; gap: 0.75rem; }
+        body.density-compact .neo-input { padding: 0.5rem 0.75rem; }
+
+        .task-item:hover {
+            box-shadow: 4px 4px 0px 0px var(--accent);
+            border-color: var(--accent);
+            transform: translate(-1px, -1px);
+        }
+        .theme-claude .task-item:hover {
+            box-shadow: 0 4px 12px rgba(var(--black-rgb), 0.06);
+            transform: translateY(-1px);
+            border-color: var(--accent);
+        }
+
+        .task-item.completed-task {
+            background: var(--gray);
+            border-style: dashed;
+            border-color: rgba(var(--black-rgb), 0.3);
+            box-shadow: none;
+            transform: none;
+        }
+
+        .task-item.completed-task .task-title {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        /* Top Bar List Item (Glassmorphism Pill) */
+        .list-item {
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            align-items: center;
+            background-color: transparent;
+            border: var(--border-width) solid transparent;
+            transition: all 0.2s ease;
+            width: auto;
+            min-width: 140px;
+            color: rgba(var(--black-rgb), 0.5);
+            white-space: nowrap;
+        }
+        
+        .list-item > span:first-child { flex-grow: 1; text-align: center; padding-right: 0.5rem;}
+        .list-item > span:last-child { flex-shrink: 0; }
+        
+        .list-item:hover {
+            color: rgba(var(--black-rgb), 0.9);
+            background: rgba(var(--black-rgb), 0.05);
+        }
+
+        .list-item.active {
+            color: var(--accent);
+            font-weight: 800;
+            background: rgba(var(--white-rgb), 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-color: rgba(var(--accent-rgb), 0.2);
+            box-shadow: 0 4px 12px rgba(var(--black-rgb), 0.08);
+        }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(var(--black-rgb), 0.2); border-radius: 4px; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* --- ANIMATIONS & EFFECTS --- */
+        .liquid-glass {
+            background: rgba(var(--white-rgb), 0.7);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: var(--border-width) solid var(--black);
+            box-shadow: 6px 6px 0px 0px rgba(var(--black-rgb), 0.2);
+            color: var(--black);
+            border-radius: var(--radius-card);
+        }
+        .theme-claude .liquid-glass {
+            border-color: rgba(var(--black-rgb), 0.1);
+            box-shadow: 0 8px 32px rgba(var(--black-rgb), 0.08);
+        }
+
+        .modal-overlay {
+            background: rgba(var(--black-rgb), 0.3);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        
+        .modal-content {
+            transform: translateY(20px) scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.open .modal-content { transform: translateY(0) scale(1); }
+
+        .full-screen-menu {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+        }
+        .full-screen-menu.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+
+        .accordion-wrapper { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease-out; }
+        .accordion-wrapper.open { grid-template-rows: 1fr; }
+        .accordion-inner { overflow: hidden; }
+        .chevron { transition: transform 0.3s ease; }
+        .chevron.open { transform: rotate(180deg); }
+
+        @keyframes brutal-complete {
+            0% { transform: scale(1); background-color: var(--white); box-shadow: 4px 4px 0px 0px var(--black); }
+            30% { transform: scale(0.95) rotate(-2deg); background-color: var(--accent); color: var(--white); box-shadow: 0px 0px 0px 0px var(--black); }
+            100% { transform: scale(1) rotate(0deg); background-color: var(--gray); box-shadow: none; }
+        }
+        .theme-claude @keyframes brutal-complete {
+            0% { transform: scale(1); }
+            30% { transform: scale(0.98); opacity: 0.8; }
+            100% { transform: scale(1); background-color: var(--gray); box-shadow: none; }
+        }
+        .animating-complete { animation: brutal-complete 0.4s ease-out forwards; pointer-events: none; }
+
+        @keyframes slide-in-up {
+            0% { opacity: 0; transform: translateY(20px) scale(0.98); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animating-in { animation: slide-in-up 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        @keyframes view-fade-in {
+            0% { opacity: 0; transform: translateY(15px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .view-enter { animation: view-fade-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
+        /* Toast Container (Top Right Corner) */
+        #toast-container {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            left: auto;
+            transform: none;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            pointer-events: none;
+        }
+        
+        .toast-notification {
+            background: var(--black);
+            color: var(--white);
+            padding: 0.75rem 1.5rem;
+            border-radius: 999px;
+            font-weight: bold;
+            font-size: 0.875rem;
+            box-shadow: 0 4px 12px rgba(var(--black-rgb), 0.2);
+            animation: toast-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards, toast-out 0.3s 2.7s ease-in forwards;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .theme-claude .toast-notification {
+            background: var(--accent);
+            color: var(--white);
+            box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);
+        }
+
+        @keyframes toast-in { 0% { opacity: 0; transform: translateX(20px) scale(0.9); } 100% { opacity: 1; transform: translateX(0) scale(1); } }
+        @keyframes toast-out { 0% { opacity: 1; transform: translateX(0) scale(1); } 100% { opacity: 0; transform: translateX(20px) scale(0.9); } }
+
+        .glass-oval {
+            background: rgba(var(--black-rgb), 0.05);
+            backdrop-filter: blur(12px);
+            border: var(--border-width) solid transparent;
+            border-radius: 9999px;
+            transition: all 0.2s ease;
+            color: var(--black);
+        }
+        .theme-claude .glass-oval { border-color: rgba(var(--black-rgb), 0.1); }
+        .glass-oval:hover { background: rgba(var(--black-rgb), 0.1); }
+
+        .font-fun {
+            display: inline-block;
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), text-shadow 0.25s;
+        }
+        .font-fun:hover {
+            transform: scale(1.02) rotate(-1deg);
+            text-shadow: 3px 3px 0px #ff3366, -3px -3px 0px #33ccff;
+            color: transparent;
+            -webkit-text-stroke: 2px var(--black);
+        }
+        .theme-claude .font-fun:hover {
+            text-shadow: none;
+            color: var(--accent);
+            -webkit-text-stroke: 0;
+            transform: translateY(-2px);
+        }
+        
+        .view-nav-btn {
+            padding-bottom: 0.25rem;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.2s, color 0.2s;
+            font-weight: bold;
+            font-size: 0.875rem;
+            opacity: 0.5;
+        }
+        .view-nav-btn.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col relative theme-claude">
+
+    <!-- Global Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Top Navigation (Groups/Lists) -->
+    <nav class="flex items-center justify-center overflow-x-auto px-6 py-2 liquid-glass border-x-0 border-t-0 border-b-2 !rounded-none z-10 shrink-0 hide-scrollbar w-full">
+        <div id="lists-container" class="flex items-center justify-center flex-nowrap w-max gap-2">
+            <!-- Lists injected via JS -->
+        </div>
+        <div class="w-px h-5 bg-[rgba(var(--black-rgb),0.2)] mx-4 shrink-0"></div>
+        <button id="add-list-btn" class="glass-oval shrink-0 p-2 text-sm font-bold flex items-center justify-center w-8 h-8" title="New List">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+        </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col overflow-y-auto relative pb-28">
+        
+        <!-- View Navigation Switcher -->
+        <div class="flex justify-center gap-6 pt-4 shrink-0" id="view-nav-container">
+            <button class="view-nav-btn active" onclick="switchView('home')">Home</button>
+            <button class="view-nav-btn" onclick="switchView('list')">List View</button>
+            <button class="view-nav-btn" onclick="switchView('calendar')">Calendar</button>
+        </div>
+        
+        <!-- Tasks Area -->
+        <div class="p-4 sm:p-6 pt-6 flex-1 max-w-4xl w-full mx-auto" id="main-view-area">
+            <!-- Dynamic Content Injected Here -->
+        </div>
+    </main>
+
+    <!-- Bottom Toolbar FABs -->
+    <div class="fixed bottom-6 left-0 right-0 px-6 flex justify-between items-end z-40 pointer-events-none max-w-4xl mx-auto">
+        
+        <!-- Settings FAB (Left) -->
+        <button id="fab-settings" class="neo-btn w-12 h-12 rounded-full flex items-center justify-center pointer-events-auto liquid-glass !border-[var(--border-width)]" title="Settings (Cmd/Ctrl+S)" onclick="openSettingsScreen()">
+            <i data-lucide="settings" class="w-6 h-6"></i>
+        </button>
+
+        <!-- Main Add Task FAB (Center) - Swipe up to open -->
+        <button id="fab-add-task" class="neo-btn primary w-16 h-16 rounded-full flex items-center justify-center pointer-events-auto border-[var(--border-width)] hover:scale-105 active:scale-95 shadow-[0_4px_16px_rgba(var(--accent-rgb),0.4)]" style="transform-origin: center;" title="Add Task (Cmd/Ctrl+K)">
+            <i data-lucide="plus" class="w-8 h-8"></i>
+        </button>
+
+        <!-- Tools FAB (Right) -->
+        <div class="relative pointer-events-auto">
+            <button id="fab-tools" class="neo-btn w-12 h-12 rounded-full flex items-center justify-center liquid-glass !border-[var(--border-width)]" title="Tools & Sort" onclick="toggleToolsDropdown(event)">
+                <i data-lucide="more-horizontal" class="w-6 h-6"></i>
+            </button>
+            
+            <!-- Tools Dropdown -->
+            <div id="tools-dropdown" class="absolute bottom-16 right-0 liquid-glass w-56 p-4 hidden flex-col z-50 origin-bottom-right">
+                <h3 class="text-lg font-black uppercase mb-3 border-b border-[rgba(var(--black-rgb),0.2)] pb-1">Tools</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block font-bold uppercase text-xs mb-1">Sort Tasks</label>
+                        <select id="sort-tasks" class="neo-input w-full cursor-pointer appearance-none rounded-none font-bold py-1 px-2 text-sm bg-transparent" onchange="state.currentSort = this.value; saveStateAndRender(); toggleToolsDropdown(new Event('click'));">
+                            <option value="default">Default</option>
+                            <option value="date">By Date</option>
+                            <option value="importance">Important First</option>
+                            <option value="az">A-Z</option>
+                        </select>
+                    </div>
+                    <button type="button" class="neo-btn w-full py-2 text-sm bg-transparent" onclick="markAllCompleted()">
+                        <i data-lucide="check-square" class="w-4 h-4 mr-2"></i> Mark All Done
+                    </button>
+                    <button type="button" class="neo-btn w-full py-2 text-sm bg-transparent" onclick="clearCompletedTasks()">
+                        <i data-lucide="trash" class="w-4 h-4 mr-2"></i> Clear Completed
+                    </button>
+                    <button type="button" class="neo-btn w-full py-2 text-sm bg-transparent text-red-500 border-red-500" onclick="deleteAllTasks()">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 mr-2"></i> Delete All Tasks
+                    </button>
+                    <button type="button" class="neo-btn w-full py-2 text-sm bg-transparent" onclick="exportData()">
+                        <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full Screen New Task Menu -->
+    <div id="new-task-screen" class="full-screen-menu liquid-glass border-0 !rounded-none">
+        <div class="flex items-center justify-between p-6 border-b-2 border-[rgba(var(--black-rgb),0.1)] shrink-0 bg-transparent relative">
+            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1.5 rounded-full bg-[rgba(var(--black-rgb),0.2)]"></div>
+            <h2 class="text-3xl font-black uppercase tracking-tight font-fun mt-2">Create Task</h2>
+            <button id="close-new-task-btn" class="neo-btn p-2 bg-transparent mt-2">
+                <i data-lucide="chevron-down" class="w-6 h-6"></i>
+            </button>
+        </div>
+        
+        <form id="new-task-form" class="flex-1 flex flex-col overflow-hidden bg-transparent max-w-4xl w-full mx-auto">
+            <div class="p-6 space-y-6 overflow-y-auto flex-1 pb-12">
+                
+                <!-- Task Identity Section -->
+                <div class="neo-border p-5 bg-[rgba(var(--black-rgb),0.02)] rounded-xl space-y-4">
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-1">What needs to be done?</label>
+                        <input type="text" id="new-task-title" class="neo-input w-full text-xl font-bold bg-transparent border-t-0 border-x-0 border-b-2 !border-[rgba(var(--black-rgb),0.1)] !rounded-none focus:bg-[rgba(var(--black-rgb),0.05)] px-2 focus:border-[var(--accent)]" placeholder="Task name..." required autocomplete="off">
+                    </div>
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-1">Details & Notes</label>
+                        <textarea id="new-task-details" class="neo-input w-full min-h-[80px] resize-y text-sm bg-transparent" placeholder="Add extra notes or details..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-1">Assign to List</label>
+                        <select id="new-task-list" class="neo-input w-full cursor-pointer appearance-none rounded-none text-sm bg-transparent font-bold">
+                            <!-- Options injected via JS -->
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Scheduling Section -->
+                <div class="neo-border p-5 bg-[rgba(var(--black-rgb),0.02)] rounded-xl space-y-4">
+                    <h3 class="font-black uppercase text-sm flex items-center gap-2 border-b border-[rgba(var(--black-rgb),0.1)] pb-2 mb-2"><i data-lucide="calendar" class="w-4 h-4"></i> Scheduling & Alerts</h3>
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-1">Due Date & Time</label>
+                        <input type="datetime-local" id="new-task-date" class="neo-input w-full text-sm cursor-pointer bg-transparent">
+                    </div>
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-1">Repeat</label>
+                        <select id="new-task-repeat" class="neo-input w-full cursor-pointer appearance-none rounded-none text-sm bg-transparent">
+                            <option value="none">Does not repeat</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="pt-2 flex flex-col gap-3">
+                        <label class="flex items-center gap-3 cursor-pointer group w-max" onclick="document.getElementById('new-task-important').classList.toggle('checked')">
+                            <div id="new-task-important" class="neo-checkbox pointer-events-none">
+                                <i data-lucide="star" class="w-4 h-4"></i>
+                            </div>
+                            <span class="font-bold uppercase text-sm">Mark Important</span>
+                        </label>
+                        
+                        <!-- Specific Push Notification Toggle -->
+                        <label class="flex items-center gap-3 cursor-pointer group w-max" onclick="document.getElementById('new-task-notify').classList.toggle('checked')">
+                            <div id="new-task-notify" class="neo-checkbox pointer-events-none">
+                                <i data-lucide="bell" class="w-4 h-4"></i>
+                            </div>
+                            <span class="font-bold uppercase text-sm">Notify me when due (Vercel)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Metadata Section -->
+                <div class="neo-border p-5 bg-[rgba(var(--black-rgb),0.02)] rounded-xl space-y-4">
+                    <h3 class="font-black uppercase text-sm flex items-center gap-2 border-b border-[rgba(var(--black-rgb),0.1)] pb-2 mb-2"><i data-lucide="paperclip" class="w-4 h-4"></i> Add-ons</h3>
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-1">Location</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="new-task-location" class="neo-input flex-1 bg-transparent text-sm" placeholder="Enter location...">
+                            <button type="button" class="neo-btn bg-transparent" onclick="autoFetchLocation('new')" title="Use Current Location">
+                                <i data-lucide="map-pin" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-1">Attachments (Local Only)</label>
+                        <input type="file" id="new-task-file" class="neo-input w-full bg-transparent text-sm" multiple>
+                    </div>
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-1">Subtasks</label>
+                        <div class="flex gap-2 mb-2">
+                            <input type="text" id="new-subtask-input" class="neo-input flex-1 text-sm bg-transparent" placeholder="Add a subtask..." onkeydown="if(event.key==='Enter'){event.preventDefault(); addTempSubtask('new');}">
+                            <button type="button" class="neo-btn primary px-4 text-sm" onclick="addTempSubtask('new')">Add</button>
+                        </div>
+                        <div id="new-subtasks-container" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-6 shrink-0 bg-[var(--white)] shadow-[0_-10px_20px_rgba(0,0,0,0.05)] rounded-t-2xl">
+                <button type="submit" class="neo-btn primary w-full py-4 text-xl hover:opacity-90">
+                    Add Task
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Task Edit Full Screen Menu -->
+    <div id="edit-modal" class="full-screen-menu liquid-glass border-0 !rounded-none">
+        <div class="flex items-center justify-between p-6 border-b-2 border-[rgba(var(--black-rgb),0.1)] shrink-0 bg-transparent relative">
+            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1.5 rounded-full bg-[rgba(var(--black-rgb),0.2)]"></div>
+            <h2 class="text-3xl font-black uppercase tracking-tight font-fun mt-2">Edit Task</h2>
+            <button id="close-edit-modal-btn" class="neo-btn p-2 bg-transparent mt-2">
+                <i data-lucide="chevron-down" class="w-6 h-6"></i>
+            </button>
+        </div>
+        
+        <form id="edit-task-form" class="flex-1 flex flex-col overflow-hidden bg-transparent max-w-4xl w-full mx-auto">
+            <div class="p-6 space-y-6 overflow-y-auto flex-1 pb-12">
+                
+                <div class="neo-border p-5 bg-[rgba(var(--black-rgb),0.02)] rounded-xl space-y-4">
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-1">Title</label>
+                        <input type="text" id="edit-task-title" class="neo-input w-full font-bold bg-transparent border-t-0 border-x-0 border-b-2 !border-[rgba(var(--black-rgb),0.1)] !rounded-none px-2 text-xl focus:bg-[rgba(var(--black-rgb),0.05)] focus:border-[var(--accent)]" required>
+                    </div>
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-1">Details & Notes</label>
+                        <textarea id="edit-task-details" class="neo-input w-full min-h-[80px] resize-y bg-transparent text-sm" placeholder="Add details..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-1">Move to List</label>
+                        <select id="edit-task-list" class="neo-input w-full cursor-pointer appearance-none rounded-none bg-transparent font-bold text-sm">
+                            <!-- Options injected via JS -->
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="neo-border p-5 bg-[rgba(var(--black-rgb),0.02)] rounded-xl space-y-4">
+                    <h3 class="font-black uppercase text-sm flex items-center gap-2 border-b border-[rgba(var(--black-rgb),0.1)] pb-2 mb-2"><i data-lucide="calendar" class="w-4 h-4"></i> Scheduling</h3>
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-1">Due Date & Time</label>
+                        <input type="datetime-local" id="edit-task-date" class="neo-input w-full cursor-pointer bg-transparent text-sm">
+                    </div>
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-1">Repeat</label>
+                        <select id="edit-task-repeat" class="neo-input w-full cursor-pointer appearance-none rounded-none bg-transparent text-sm">
+                            <option value="none">Does not repeat</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="pt-2 flex flex-col gap-3">
+                        <label class="flex items-center gap-3 cursor-pointer group w-max" onclick="document.getElementById('edit-task-important').classList.toggle('checked')">
+                            <div id="edit-task-important" class="neo-checkbox pointer-events-none">
+                                <i data-lucide="star" class="w-4 h-4"></i>
+                            </div>
+                            <span class="font-bold uppercase text-sm">Important</span>
+                        </label>
+                        
+                        <label class="flex items-center gap-3 cursor-pointer group w-max" onclick="document.getElementById('edit-task-notify').classList.toggle('checked')">
+                            <div id="edit-task-notify" class="neo-checkbox pointer-events-none">
+                                <i data-lucide="bell" class="w-4 h-4"></i>
+                            </div>
+                            <span class="font-bold uppercase text-sm">Notify me when due</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="neo-border p-5 bg-[rgba(var(--black-rgb),0.02)] rounded-xl space-y-4">
+                    <h3 class="font-black uppercase text-sm flex items-center gap-2 border-b border-[rgba(var(--black-rgb),0.1)] pb-2 mb-2"><i data-lucide="paperclip" class="w-4 h-4"></i> Add-ons</h3>
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-1">Location</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="edit-task-location" class="neo-input flex-1 bg-transparent text-sm" placeholder="Enter location...">
+                            <button type="button" class="neo-btn bg-transparent" onclick="autoFetchLocation('edit')" title="Use Current Location">
+                                <i data-lucide="map-pin" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-1">Attachments (Local Only)</label>
+                        <input type="file" id="edit-task-file" class="neo-input w-full bg-transparent text-sm" multiple>
+                    </div>
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-1">Subtasks</label>
+                        <div class="flex gap-2 mb-2">
+                            <input type="text" id="edit-subtask-input" class="neo-input flex-1 text-sm bg-transparent" placeholder="Add a subtask..." onkeydown="if(event.key==='Enter'){event.preventDefault(); addTempSubtask('edit');}">
+                            <button type="button" class="neo-btn primary px-4 text-sm" onclick="addTempSubtask('edit')">Add</button>
+                        </div>
+                        <div id="edit-subtasks-container" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center p-6 shrink-0 bg-[var(--white)] shadow-[0_-10px_20px_rgba(0,0,0,0.05)] rounded-t-2xl">
+                <button type="button" id="delete-task-btn" class="neo-btn px-4 py-4 text-red-500 border-red-500 bg-transparent">
+                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                </button>
+                <div class="flex flex-1 ml-4 gap-2">
+                    <button type="button" id="cancel-edit-btn" class="neo-btn flex-1 py-4 text-lg bg-transparent">
+                        Cancel
+                    </button>
+                    <button type="button" class="neo-btn primary flex-1 py-4 text-lg hover:opacity-90" onclick="document.getElementById('edit-task-form').requestSubmit()">
+                        Save
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Context Menu for Lists -->
+    <div id="list-context-menu" class="fixed hidden liquid-glass flex-col z-[100] w-36 py-2">
+        <button id="ctx-rename-btn" class="px-4 py-2 font-bold hover:bg-[rgba(var(--black-rgb),0.1)] text-left text-sm transition-colors">Rename</button>
+        <button id="ctx-delete-btn" class="px-4 py-2 font-bold text-red-500 hover:bg-[rgba(var(--black-rgb),0.1)] hover:text-red-700 text-left text-sm transition-colors">Delete</button>
+    </div>
+
+    <!-- Rename List Modal -->
+    <div id="rename-modal" class="fixed inset-0 z-50 modal-overlay flex items-center justify-center p-4">
+        <div class="liquid-glass w-full max-w-sm p-6 relative modal-content">
+            <h3 class="text-xl font-black uppercase mb-4 border-b-2 border-[rgba(var(--black-rgb),0.1)] pb-2">Rename List</h3>
+            <form id="rename-list-form" class="space-y-4">
+                <input type="text" id="rename-list-input" class="neo-input w-full bg-transparent" required autocomplete="off">
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" id="cancel-rename-btn" class="neo-btn px-4 py-2 bg-transparent">Cancel</button>
+                    <button type="submit" class="neo-btn primary px-6 py-2">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Full Screen Settings Menu -->
+    <div id="settings-screen" class="full-screen-menu liquid-glass border-0 !rounded-none">
+        <div class="flex items-center justify-between p-6 border-b-2 border-[rgba(var(--black-rgb),0.1)] shrink-0 bg-transparent max-w-4xl w-full mx-auto relative">
+            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1.5 rounded-full bg-[rgba(var(--black-rgb),0.2)]"></div>
+            <h2 class="text-3xl font-black uppercase tracking-tight font-fun mt-2">Settings</h2>
+            <button class="neo-btn p-2 bg-transparent mt-2" onclick="closeSettingsScreen()">
+                <i data-lucide="chevron-down" class="w-6 h-6"></i>
+            </button>
+        </div>
+        
+        <div class="p-6 space-y-8 overflow-y-auto flex-1 bg-transparent max-w-4xl w-full mx-auto pb-12">
+            
+            <!-- Lifetime Totals -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="neo-border p-4 bg-[rgba(var(--black-rgb),0.02)] text-center rounded-xl">
+                    <div class="text-xs font-bold uppercase opacity-60 mb-1"><i data-lucide="plus-circle" class="w-4 h-4 inline mr-1"></i> Created</div>
+                    <div class="text-4xl font-black text-[var(--accent)]" id="stats-created">0</div>
+                </div>
+                <div class="neo-border p-4 bg-[rgba(var(--black-rgb),0.02)] text-center rounded-xl">
+                    <div class="text-xs font-bold uppercase opacity-60 mb-1"><i data-lucide="check-circle" class="w-4 h-4 inline mr-1"></i> Completed</div>
+                    <div class="text-4xl font-black text-green-600" id="stats-completed">0</div>
+                </div>
+            </div>
+
+            <!-- Appearance Section -->
+            <div class="neo-border p-5 bg-[rgba(var(--black-rgb),0.02)] rounded-xl">
+                <h3 class="text-lg font-black uppercase mb-4 border-b border-[rgba(var(--black-rgb),0.1)] pb-2 flex items-center gap-2"><i data-lucide="palette"></i> Visual Upgrades</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-2">Theme</label>
+                        <select id="setting-theme" class="neo-input w-full cursor-pointer appearance-none rounded-none bg-transparent font-bold" onchange="updateSettings('theme', this.value)">
+                            <option value="claude">Claude's Style (Default)</option>
+                            <option value="light">Light Brutalism</option>
+                            <option value="dark">Dark Brutalism</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-2">Accent Color</label>
+                        <select id="setting-accent" class="neo-input w-full cursor-pointer appearance-none rounded-none bg-transparent font-bold" onchange="updateSettings('accent', this.value)">
+                            <option value="default">Default</option>
+                            <option value="blue">Ocean Blue</option>
+                            <option value="emerald">Emerald Green</option>
+                            <option value="rose">Rose Red</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-bold uppercase text-xs opacity-70 mb-2">Font</label>
+                            <select id="setting-font" class="neo-input w-full cursor-pointer appearance-none rounded-none bg-transparent font-bold text-sm" onchange="updateSettings('font', this.value)">
+                                <option value="'Space Grotesk'">Space Grotesk</option>
+                                <option value="'Inter', sans-serif">Inter</option>
+                                <option value="'PT Serif', serif">PT Serif</option>
+                                <option value="'Roboto', sans-serif">Roboto</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold uppercase text-xs opacity-70 mb-2">Density</label>
+                            <select id="setting-density" class="neo-input w-full cursor-pointer appearance-none rounded-none bg-transparent font-bold text-sm" onchange="updateSettings('density', this.value)">
+                                <option value="comfortable">Comfortable</option>
+                                <option value="compact">Compact</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vercel Push Notifications Section -->
+            <div class="neo-border p-5 bg-[rgba(var(--black-rgb),0.02)] rounded-xl">
+                <h3 class="text-lg font-black uppercase mb-4 border-b border-[rgba(var(--black-rgb),0.1)] pb-2 flex items-center gap-2"><i data-lucide="bell-ring"></i> Vercel Push Notifications</h3>
+                <p class="text-xs font-semibold opacity-70 mb-4">Receive a nightly summary of your active tasks and alerts for specific due dates. Powered by Vercel.</p>
+                <div class="flex items-center justify-between mb-4">
+                    <label class="font-bold uppercase text-sm">Enable Web Push</label>
+                    <div class="neo-checkbox" id="setting-notifications" onclick="toggleVercelNotifications()">
+                        <i data-lucide="check" class="w-4 h-4 hidden text-[var(--white)]"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Section -->
+            <div class="neo-border p-5 bg-[rgba(var(--black-rgb),0.05)] rounded-xl">
+                <h3 class="text-lg font-black uppercase mb-4 border-b border-[rgba(var(--black-rgb),0.1)] pb-2 flex items-center gap-2"><i data-lucide="cloud"></i> Cloud Sync Account</h3>
+                <div id="auth-status" class="mb-4 font-bold text-sm opacity-70">Not logged in. Data is stored locally.</div>
+                
+                <form id="auth-form" class="space-y-4">
+                    <input type="text" id="auth-username" class="neo-input w-full bg-transparent" placeholder="Username" required>
+                    <input type="password" id="auth-password" class="neo-input w-full bg-transparent" placeholder="Password" required>
+                    <div class="flex gap-3">
+                        <button type="button" class="neo-btn flex-1 py-2 bg-transparent" onclick="handleAuth('register')">Register</button>
+                        <button type="button" class="neo-btn primary flex-1 py-2" onclick="handleAuth('login')">Login</button>
+                    </div>
+                    <div id="auth-message" class="text-sm font-bold text-red-500 hidden"></div>
+                </form>
+                
+                <div id="logged-in-view" class="hidden space-y-4">
+                    <button class="neo-btn primary w-full py-2" onclick="pullData(false)">
+                        <i data-lucide="download-cloud" class="w-4 h-4 mr-2"></i> Fetch Latest from Cloud
+                    </button>
+                    <button class="neo-btn w-full py-2 border-dashed bg-transparent text-red-500 border-red-500 hover:bg-red-50" onclick="logout()">Logout</button>
+                </div>
+            </div>
+            
+            <!-- Keyboard Shortcuts -->
+            <div class="neo-border p-5 bg-[rgba(var(--black-rgb),0.02)] rounded-xl">
+                <h3 class="text-lg font-black uppercase mb-4 border-b border-[rgba(var(--black-rgb),0.1)] pb-2 flex items-center gap-2"><i data-lucide="keyboard"></i> Shortcuts</h3>
+                <div class="grid grid-cols-2 gap-y-3 text-sm font-bold">
+                    <div class="opacity-70">New Task</div>
+                    <div class="text-right"><kbd class="bg-[rgba(var(--black-rgb),0.1)] px-2 py-1 rounded">Cmd/Ctrl + K</kbd></div>
+                    
+                    <div class="opacity-70">Settings</div>
+                    <div class="text-right"><kbd class="bg-[rgba(var(--black-rgb),0.1)] px-2 py-1 rounded">Cmd/Ctrl + S</kbd></div>
+                    
+                    <div class="opacity-70">Close Menu</div>
+                    <div class="text-right"><kbd class="bg-[rgba(var(--black-rgb),0.1)] px-2 py-1 rounded">Escape</kbd></div>
+                    
+                    <div class="opacity-70">Switch Views</div>
+                    <div class="text-right"><kbd class="bg-[rgba(var(--black-rgb),0.1)] px-2 py-1 rounded">1 / 2 / 3</kbd></div>
+                </div>
+            </div>
+
+            <div class="text-center pt-4 pb-4 opacity-50 text-xs font-bold uppercase tracking-widest">
+                Neo Tasks v3.0.0 (Build 142)
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management & Storage ---
+        const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
+        const API_URL = 'https://neo-tasks-backend.sawyerbobk563.workers.dev'; 
+        const VERCEL_PUSH_URL = '/api/push'; // Vercel endpoint
+
+        // Default state
+        let state = {
+            lists: [{ id: 'default', name: 'My Tasks' }],
+            tasks: [{ id: generateId(), listId: 'default', title: 'Welcome to Tasks', details: 'Swipe up on the plus icon to add a task!', completed: false, important: false, dueDate: '', repeat: 'none', location: '', notified: false, pushNotify: false, subtasks: [], files: [], createdAt: Date.now() }],
+            activeListId: 'default',
+            editingTaskId: null,
+            animatingTaskId: null,
+            showCompleted: false,
+            contextMenuListId: null,
+            currentSort: 'default',
+            currentView: 'home', // 'home', 'list', 'calendar'
+            calendarSelectedDate: new Date().toISOString().split('T')[0],
+            tempSubtasks: [],
+            tempFiles: [],
+            settings: { theme: 'claude', accent: 'default', font: "'Space Grotesk'", density: 'comfortable', notifications: false },
+            stats: { created: 1, completed: 0 },
+            auth: { username: null, token: null }
+        };
+
+        // Load from LocalStorage for instant load
+        function loadLocalState() {
+            try {
+                const saved = localStorage.getItem('neo-tasks-state');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    state.lists = parsed.lists || state.lists;
+                    state.tasks = parsed.tasks || state.tasks;
+                    state.currentSort = parsed.currentSort || state.currentSort;
+                    state.currentView = parsed.currentView || state.currentView;
+                    state.settings = {...state.settings, ...parsed.settings};
+                    state.stats = parsed.stats || { created: state.tasks.length, completed: state.tasks.filter(t=>t.completed).length };
+                    state.activeListId = parsed.activeListId || state.activeListId;
+                }
+                
+                // Load Auth from Cookies
+                state.auth.token = getCookie('auth_token');
+                state.auth.username = getCookie('auth_username');
+            } catch (e) { console.error("Could not load local state", e); }
+        }
+
+        // Save to LocalStorage and Trigger Debounced Cloud Sync
+        let syncTimeout = null;
+        function saveStateAndRender() {
+            try {
+                localStorage.setItem('neo-tasks-state', JSON.stringify({
+                    lists: state.lists,
+                    tasks: state.tasks,
+                    currentSort: state.currentSort,
+                    currentView: state.currentView,
+                    settings: state.settings,
+                    stats: state.stats,
+                    activeListId: state.activeListId
+                }));
+            } catch (e) { console.error("Could not save local state", e); }
+            
+            render();
+            
+            // Debounced auto-sync to Cloudflare
+            if (state.auth.token) {
+                clearTimeout(syncTimeout);
+                syncTimeout = setTimeout(() => { pushData(true); }, 2000);
+            }
+        }
+
+        // Cookie Helpers
+        function setCookie(name, value, days) {
+            let expires = "";
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "")  + expires + "; path=/; SameSite=Lax; Secure";
+        }
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i=0;i < ca.length;i++) {
+                let c = ca[i];
+                while (c.charAt(0)==' ') c = c.substring(1,c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+            }
+            return null;
+        }
+
+        // Toasts
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.innerHTML = `<i data-lucide="info" class="w-4 h-4"></i> <span>${escapeHTML(message)}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons({ root: toast });
+            setTimeout(() => { toast.remove(); }, 3500);
+        }
+
+        // --- DOM Elements ---
+        const els = {
+            listsContainer: document.getElementById('lists-container'),
+            mainViewArea: document.getElementById('main-view-area'),
+            viewNavContainer: document.getElementById('view-nav-container'),
+            
+            fabAddTask: document.getElementById('fab-add-task'),
+            newTaskScreen: document.getElementById('new-task-screen'),
+            closeNewTaskBtn: document.getElementById('close-new-task-btn'),
+            newTaskForm: document.getElementById('new-task-form'),
+            newTaskTitle: document.getElementById('new-task-title'),
+            newTaskDetails: document.getElementById('new-task-details'),
+            newTaskList: document.getElementById('new-task-list'),
+            newTaskDate: document.getElementById('new-task-date'),
+            newTaskRepeat: document.getElementById('new-task-repeat'),
+            newTaskImportant: document.getElementById('new-task-important'),
+            newTaskNotify: document.getElementById('new-task-notify'),
+            newTaskLocation: document.getElementById('new-task-location'),
+            newTaskFile: document.getElementById('new-task-file'),
+            
+            editModal: document.getElementById('edit-modal'),
+            editTaskForm: document.getElementById('edit-task-form'),
+            editTaskTitle: document.getElementById('edit-task-title'),
+            editTaskDetails: document.getElementById('edit-task-details'),
+            editTaskList: document.getElementById('edit-task-list'),
+            editTaskDate: document.getElementById('edit-task-date'),
+            editTaskRepeat: document.getElementById('edit-task-repeat'),
+            editTaskImportant: document.getElementById('edit-task-important'),
+            editTaskNotify: document.getElementById('edit-task-notify'),
+            editTaskLocation: document.getElementById('edit-task-location'),
+            editTaskFile: document.getElementById('edit-task-file'),
+            closeEditModalBtn: document.getElementById('close-edit-modal-btn'),
+            cancelEditBtn: document.getElementById('cancel-edit-btn'),
+            deleteTaskBtn: document.getElementById('delete-task-btn'),
+
+            addListBtn: document.getElementById('add-list-btn'),
+            
+            contextMenu: document.getElementById('list-context-menu'),
+            ctxRenameBtn: document.getElementById('ctx-rename-btn'),
+            ctxDeleteBtn: document.getElementById('ctx-delete-btn'),
+            renameModal: document.getElementById('rename-modal'),
+            renameListForm: document.getElementById('rename-list-form'),
+            renameListInput: document.getElementById('rename-list-input'),
+            cancelRenameBtn: document.getElementById('cancel-rename-btn'),
+            
+            toolsDropdown: document.getElementById('tools-dropdown'),
+            settingsScreen: document.getElementById('settings-screen'),
+            statsCreated: document.getElementById('stats-created'),
+            statsCompleted: document.getElementById('stats-completed')
+        };
+
+        // --- Core Render Functions ---
+
+        function triggerViewAnimation() {
+            els.mainViewArea.classList.remove('view-enter');
+            void els.mainViewArea.offsetWidth; // trigger reflow
+            els.mainViewArea.classList.add('view-enter');
+        }
+
+        function switchView(view) {
+            state.currentView = view;
+            triggerViewAnimation();
+            saveStateAndRender();
+        }
+
+        function setCalendarDate(dateStr) {
+            state.calendarSelectedDate = dateStr;
+            saveStateAndRender();
+        }
+
+        function render() {
+            renderLists();
+            renderViewNav();
+            renderMainArea();
+            updateDropdowns();
+            if(els.statsCreated) els.statsCreated.textContent = state.stats.created;
+            if(els.statsCompleted) els.statsCompleted.textContent = state.stats.completed;
+            lucide.createIcons();
+        }
+
+        function renderLists() {
+            // Render Important Group First
+            const importantActiveCount = state.tasks.filter(t => t.important && !t.completed).length;
+            const importantHtml = `
+                <div class="list-item ${'important' === state.activeListId ? 'active' : ''}" 
+                     onclick="setActiveList('important')">
+                    <span class="truncate font-fun text-lg text-center flex-1">
+                        <i data-lucide="star" class="w-5 h-5 inline-block -mt-1 ${'important' === state.activeListId ? 'fill-[var(--accent)] text-[var(--accent)]' : ''}"></i>
+                    </span>
+                    <span class="text-xs px-2 py-0.5 rounded-full border ${'important' === state.activeListId ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-gray-400 text-gray-500'} font-black shrink-0">
+                        ${importantActiveCount}
+                    </span>
+                </div>
+            `;
+
+            // Render Normal Groups
+            const listsHtml = state.lists.map(list => {
+                const activeCount = state.tasks.filter(t => t.listId === list.id && !t.completed).length;
+                return `
+                    <div class="list-item ${list.id === state.activeListId ? 'active' : ''}" 
+                         onclick="setActiveList('${list.id}')"
+                         oncontextmenu="openListMenu(event, '${list.id}')">
+                        <span class="truncate font-fun text-lg text-center flex-1">${escapeHTML(list.name)}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full border ${list.id === state.activeListId ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-gray-400 text-gray-500'} font-black shrink-0 ml-2">
+                            ${activeCount}
+                        </span>
+                    </div>
+                `;
+            });
+
+            els.listsContainer.innerHTML = [importantHtml, ...listsHtml].join('');
+        }
+
+        function renderViewNav() {
+            const buttons = els.viewNavContainer.querySelectorAll('button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            if(state.currentView === 'home' && buttons[0]) buttons[0].classList.add('active');
+            else if(state.currentView === 'list' && buttons[1]) buttons[1].classList.add('active');
+            else if(state.currentView === 'calendar' && buttons[2]) buttons[2].classList.add('active');
+        }
+
+        function updateDropdowns() {
+            const optionsHtml = state.lists.map(list => `
+                <option value="${list.id}">${escapeHTML(list.name)}</option>
+            `).join('');
+            if (els.editTaskList) els.editTaskList.innerHTML = optionsHtml;
+            if (els.newTaskList) els.newTaskList.innerHTML = optionsHtml;
+        }
+
+        function sortTasksArray(taskArray) {
+            if (state.currentSort === 'date') {
+                return taskArray.sort((a, b) => {
+                    if(!a.dueDate) return 1; if(!b.dueDate) return -1;
+                    return new Date(a.dueDate) - new Date(b.dueDate);
+                });
+            } else if (state.currentSort === 'importance') {
+                return taskArray.sort((a, b) => (b.important === true) - (a.important === true));
+            } else if (state.currentSort === 'az') {
+                return taskArray.sort((a, b) => a.title.localeCompare(b.title));
+            }
+            // Default sort: newest created first
+            return taskArray.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+        }
+
+        function renderMainArea() {
+            if (state.currentView === 'home') {
+                let currentTasks = state.activeListId === 'important' ? state.tasks.filter(t => t.important) : state.tasks.filter(t => t.listId === state.activeListId);
+                currentTasks = sortTasksArray(currentTasks);
+
+                const active = currentTasks.filter(t => !t.completed);
+                const completed = currentTasks.filter(t => t.completed);
+
+                const activeHtml = active.length > 0 
+                    ? active.map(createTaskHTML).join('') 
+                    : '<div class="opacity-60 font-semibold italic text-center py-6">No tasks here. Press the + button to add one.</div>';
+                    
+                const completedHtml = completed.map(createTaskHTML).join('');
+                
+                els.mainViewArea.innerHTML = `
+                    <div id="active-tasks" class="space-y-4 mb-4">${activeHtml}</div>
+                    <div class="mt-8 pt-6 border-t-2 border-[rgba(var(--black-rgb),0.1)]">
+                        <button onclick="toggleCompletedSection()" class="flex items-center gap-2 font-bold uppercase tracking-wider text-sm mb-2 hover:opacity-80 px-3 py-2 neo-border transition-colors bg-[var(--black)] text-[var(--white)]" style="display: ${completed.length > 0 ? 'inline-flex' : 'none'}">
+                            <i data-lucide="chevron-down" class="w-4 h-4 chevron ${state.showCompleted ? 'open' : ''}"></i>
+                            Completed (<span id="completed-count">${completed.length}</span>)
+                        </button>
+                        <div class="accordion-wrapper ${state.showCompleted && completed.length > 0 ? 'open' : ''}">
+                            <div class="accordion-inner">
+                                <div id="completed-tasks" class="space-y-4 pt-4 pb-2">${completedHtml}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } 
+            else if (state.currentView === 'list') {
+                // Group by Creation Date
+                const groups = {};
+                state.tasks.forEach(t => {
+                    if (t.completed) return;
+                    const d = new Date(t.createdAt || Date.now());
+                    const dateStr = d.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    if(!groups[dateStr]) groups[dateStr] = [];
+                    groups[dateStr].push(t);
+                });
+                
+                const sortedDates = Object.keys(groups).sort((a,b) => new Date(groups[b][0].createdAt || 0) - new Date(groups[a][0].createdAt || 0));
+                
+                let html = '';
+                sortedDates.forEach(date => {
+                    let listTasks = sortTasksArray(groups[date]);
+                    html += `
+                        <div class="mb-8">
+                            <h3 class="text-sm font-black uppercase mb-4 border-b-2 border-[rgba(var(--black-rgb),0.1)] pb-2 opacity-50 tracking-widest font-fun">${date}</h3>
+                            <div class="space-y-4">${listTasks.map(createTaskHTML).join('')}</div>
+                        </div>
+                    `;
+                });
+                
+                if(html === '') html = '<div class="opacity-60 font-semibold italic text-center py-6">No active tasks.</div>';
+                els.mainViewArea.innerHTML = html;
+            }
+            else if (state.currentView === 'calendar') {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth();
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                
+                let html = `
+                    <div class="text-center mb-6">
+                        <h2 class="text-3xl font-black uppercase font-fun">${monthNames[month]} ${year}</h2>
+                    </div>
+                    <div class="grid grid-cols-7 gap-2 text-center text-xs sm:text-sm font-bold uppercase opacity-50 mb-2">
+                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                    </div>
+                    <div class="grid grid-cols-7 gap-2 auto-rows-fr">
+                `;
+                
+                for(let i=0; i<firstDay; i++) {
+                    html += `<div class="neo-border bg-[rgba(var(--black-rgb),0.02)] min-h-[60px] opacity-50"></div>`;
+                }
+                
+                for(let day=1; day<=daysInMonth; day++) {
+                    const dateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const dayTasks = state.tasks.filter(t => !t.completed && t.dueDate && t.dueDate.startsWith(dateStr));
+                    const isSelected = state.calendarSelectedDate === dateStr;
+                    
+                    const tasksHtml = dayTasks.map(t => `<div class="w-1.5 h-1.5 rounded-full bg-[var(--accent)] inline-block mx-[1px]"></div>`).join('');
+                    
+                    html += `
+                        <div class="neo-border p-1 sm:p-2 min-h-[60px] flex flex-col items-center justify-start cursor-pointer transition-transform hover:scale-[1.03] ${isSelected ? 'bg-[rgba(var(--accent-rgb),0.1)] border-[var(--accent)]' : 'bg-[var(--white)]'}" onclick="setCalendarDate('${dateStr}')">
+                            <span class="font-bold mb-1 text-sm ${isSelected ? 'text-[var(--accent)] scale-110' : 'opacity-70'}">${day}</span>
+                            <div class="w-full flex-1 flex flex-wrap justify-center content-start overflow-hidden">${tasksHtml}</div>
+                        </div>
+                    `;
+                }
+                html += `</div>`;
+                
+                // Show tasks for selected date
+                const selectedTasks = state.tasks.filter(t => !t.completed && t.dueDate && t.dueDate.startsWith(state.calendarSelectedDate));
+                
+                // Construct safe Date display without timezone drift issues
+                const [y, m, d] = state.calendarSelectedDate.split('-');
+                const displayDate = new Date(y, m-1, d).toLocaleDateString(undefined, {weekday: 'short', month:'short', day:'numeric'});
+
+                html += `
+                    <div class="mt-8 pt-6 border-t-2 border-[rgba(var(--black-rgb),0.1)]">
+                        <h3 class="text-lg font-bold mb-4 font-fun uppercase tracking-widest opacity-70 text-center">Scheduled for ${displayDate}</h3>
+                        <div class="space-y-4">
+                            ${selectedTasks.length ? selectedTasks.map(createTaskHTML).join('') : '<div class="opacity-50 italic text-center">No tasks scheduled for this day.</div>'}
+                        </div>
+                    </div>
+                `;
+                els.mainViewArea.innerHTML = html;
+            }
+        }
+
+        function createTaskHTML(task) {
+            const dateHtml = task.dueDate ? `<span class="text-xs font-bold flex items-center gap-1 ${task.completed ? 'opacity-50' : 'text-blue-500'}"><i data-lucide="calendar" class="w-3 h-3"></i> ${new Date(task.dueDate).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})} ${task.repeat !== 'none' ? '<i data-lucide="repeat" class="w-3 h-3 ml-1"></i>' : ''}</span>` : '';
+            const locHtml = task.location ? `<span class="text-xs font-bold flex items-center gap-1 opacity-70"><i data-lucide="map-pin" class="w-3 h-3"></i> ${escapeHTML(task.location)}</span>` : '';
+            
+            const metaBarHtml = (dateHtml || locHtml) ? `<div class="flex flex-wrap gap-3 mt-2">${dateHtml}${locHtml}</div>` : '';
+
+            const starHtml = `<button onclick="toggleImportant(event, '${task.id}')" class="shrink-0 p-2 hover:scale-110 transition-transform z-20 relative">
+                <i data-lucide="star" class="w-6 h-6 ${task.important ? 'fill-[var(--accent)] text-[var(--accent)]' : 'text-gray-400 hover:text-[var(--black)]'}"></i>
+            </button>`;
+            
+            const subtasksHtml = (task.subtasks && task.subtasks.length > 0) ? `
+                <div class="mt-3 pl-4 border-l-4 border-[rgba(var(--black-rgb),0.2)] space-y-2 z-20 relative" onclick="event.stopPropagation()">
+                    ${task.subtasks.map((st, idx) => `
+                        <div class="flex items-center gap-3">
+                            <div class="neo-checkbox w-5 h-5 ${st.completed ? 'checked' : ''}" onclick="toggleSubtask('${task.id}', ${idx})">
+                                ${st.completed ? '<i data-lucide="check" class="w-3 h-3"></i>' : '<div class="w-2 h-2 rounded-full bg-[rgba(var(--black-rgb),0.2)]"></div>'}
+                            </div>
+                            <span class="text-sm ${st.completed ? 'line-through opacity-50' : 'font-bold'}">${escapeHTML(st.title)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : '';
+
+            const filesHtml = (task.files && task.files.length > 0) ? `
+                <div class="flex gap-2 mt-2 flex-wrap z-20 relative">
+                    ${task.files.map((f, idx) => `<a href="${f.data}" download="${f.name}" class="text-[10px] font-bold uppercase bg-[rgba(var(--black-rgb),0.05)] px-2 py-1 rounded neo-border !border-[1px] hover:bg-[rgba(var(--black-rgb),0.1)]" onclick="event.stopPropagation()"><i data-lucide="paperclip" class="w-3 h-3 inline"></i> ${escapeHTML(f.name)}</a>`).join('')}
+                </div>
+            ` : '';
+
+            const isAnimating = (task.id === state.animatingTaskId) ? 'animating-in' : '';
+
+            return `
+                <div id="swipe-wrapper-${task.id}" class="relative mb-4 group overflow-hidden neo-border bg-[var(--accent)] ${isAnimating}">
+                    <div class="absolute inset-0 flex justify-end items-center px-6 font-black text-[var(--white)] text-xl tracking-widest uppercase">Complete</div>
+                    <div id="task-content-${task.id}" class="task-item border-none m-0 relative z-10 w-full"
+                         ontouchstart="swipeStart(event, '${task.id}')"
+                         ontouchmove="swipeMove(event, '${task.id}')"
+                         ontouchend="swipeEnd(event, '${task.id}')">
+                        
+                        <div class="neo-checkbox ${task.completed ? 'checked' : ''} mt-1 z-20 relative" 
+                             onclick="toggleTask('${task.id}')">
+                            ${task.completed ? '<i data-lucide="check" class="w-5 h-5 text-[var(--accent)]"></i>' : '<div class="w-3 h-3 rounded-full border-2 border-current opacity-40"></div>'}
+                        </div>
+
+                        <div class="flex-1 cursor-pointer min-w-0" onclick="openEditModal('${task.id}')">
+                            <div class="task-title font-bold text-xl truncate ${task.important && !task.completed ? 'text-[var(--accent)] font-fun' : ''}">${escapeHTML(task.title)}</div>
+                            ${task.details ? `<div class="text-sm mt-1 truncate ${task.completed ? 'opacity-50' : 'opacity-80'}">${escapeHTML(task.details)}</div>` : ''}
+                            ${metaBarHtml}
+                            ${filesHtml}
+                            ${subtasksHtml}
+                        </div>
+                        ${starHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Actions (all wrapped with saveStateAndRender) ---
+
+        function setActiveList(listId) {
+            state.activeListId = listId;
+            state.currentView = 'home'; // Reset to home view when changing lists
+            triggerViewAnimation();
+            saveStateAndRender();
+            const activeEl = els.listsContainer.querySelector('.active');
+            if(activeEl) activeEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+
+        function toggleTask(taskId) {
+            const task = state.tasks.find(t => t.id === taskId);
+            if (task) {
+                const wasCompleted = task.completed;
+                task.completed = !task.completed;
+
+                if (!wasCompleted) {
+                    state.stats.completed++;
+                    confetti({
+                        particleCount: 100, spread: 70, origin: { y: 0.6 }, zIndex: 1000,
+                        colors: ['#000', '#666', '#d97757', '#2563eb', '#059669', '#e11d48']
+                    });
+                    
+                    if (task.repeat && task.repeat !== 'none' && task.dueDate) {
+                        let nextDate = new Date(task.dueDate);
+                        if (task.repeat === 'daily') nextDate.setDate(nextDate.getDate() + 1);
+                        else if (task.repeat === 'weekly') nextDate.setDate(nextDate.getDate() + 7);
+                        else if (task.repeat === 'monthly') nextDate.setMonth(nextDate.getMonth() + 1);
+                        else if (task.repeat === 'yearly') nextDate.setFullYear(nextDate.getFullYear() + 1);
+                        
+                        state.tasks.push({
+                            ...task, id: generateId(), dueDate: nextDate.toISOString().slice(0, 16),
+                            completed: false, notified: false, createdAt: Date.now()
+                        });
+                        state.stats.created++;
+                    }
+
+                    const taskEl = document.getElementById(`task-content-${taskId}`);
+                    if (taskEl) {
+                        taskEl.classList.add('animating-complete');
+                        lucide.createIcons({ root: taskEl });
+                        setTimeout(() => { saveStateAndRender(); }, 400); 
+                        return;
+                    }
+                }
+                saveStateAndRender();
+            }
+        }
+
+        function toggleImportant(e, taskId) {
+            e.stopPropagation();
+            const task = state.tasks.find(t => t.id === taskId);
+            if (task) { task.important = !task.important; saveStateAndRender(); }
+        }
+        
+        function toggleSubtask(taskId, subtaskIdx) {
+            const task = state.tasks.find(t => t.id === taskId);
+            if(task && task.subtasks) { task.subtasks[subtaskIdx].completed = !task.subtasks[subtaskIdx].completed; saveStateAndRender(); }
+        }
+
+        function toggleCompletedSection() {
+            state.showCompleted = !state.showCompleted;
+            saveStateAndRender();
+        }
+
+        // File Readers
+        function readFiles(inputEl) {
+            return Promise.all(Array.from(inputEl.files).map(file => {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve({ name: file.name, type: file.type, data: e.target.result });
+                    reader.readAsDataURL(file);
+                });
+            }));
+        }
+
+        async function submitNewTask(e) {
+            e.preventDefault();
+            const title = els.newTaskTitle.value.trim();
+            if (title) {
+                const newId = generateId();
+                const files = await readFiles(els.newTaskFile);
+                
+                state.tasks.unshift({
+                    id: newId, listId: els.newTaskList.value, title: title,
+                    details: els.newTaskDetails.value.trim(), dueDate: els.newTaskDate.value,
+                    repeat: els.newTaskRepeat.value, important: els.newTaskImportant.classList.contains('checked'),
+                    pushNotify: els.newTaskNotify.classList.contains('checked'),
+                    location: els.newTaskLocation.value.trim(), files: files,
+                    completed: false, notified: false, subtasks: [...state.tempSubtasks], createdAt: Date.now()
+                });
+                state.activeListId = els.newTaskList.value; 
+                state.animatingTaskId = newId; 
+                state.stats.created++;
+                
+                saveStateAndRender();
+                closeNewTaskScreen();
+                showToast("Task created.");
+                
+                setTimeout(() => { state.animatingTaskId = null; saveStateAndRender(); }, 400);
+            }
+        }
+
+        async function saveTask(e) {
+            e.preventDefault();
+            const task = state.tasks.find(t => t.id === state.editingTaskId);
+            if (task) {
+                const files = await readFiles(els.editTaskFile);
+                
+                task.title = els.editTaskTitle.value.trim();
+                task.details = els.editTaskDetails.value.trim();
+                task.dueDate = els.editTaskDate.value;
+                task.repeat = els.editTaskRepeat.value;
+                task.important = els.editTaskImportant.classList.contains('checked');
+                task.pushNotify = els.editTaskNotify.classList.contains('checked');
+                task.location = els.editTaskLocation.value.trim();
+                task.subtasks = [...state.tempSubtasks];
+                if (files.length > 0) {
+                    task.files = (task.files || []).concat(files);
+                }
+                
+                const oldListId = task.listId;
+                task.listId = els.editTaskList.value;
+                if (oldListId !== task.listId) state.activeListId = task.listId;
+                
+                saveStateAndRender();
+                closeEditModal();
+                showToast("Task updated.");
+            }
+        }
+
+        function deleteTask() {
+            if (state.editingTaskId) {
+                state.tasks = state.tasks.filter(t => t.id !== state.editingTaskId);
+                saveStateAndRender();
+                closeEditModal();
+                showToast("Task deleted.");
+            }
+        }
+
+        function addList(e) {
+            e.preventDefault();
+            const listName = els.newListInput.value.trim();
+            if (listName) {
+                const newList = { id: generateId(), name: listName };
+                state.lists.push(newList);
+                state.activeListId = newList.id;
+                saveStateAndRender();
+                els.listModal.classList.remove('open');
+                showToast(`List "${listName}" created.`);
+            }
+        }
+
+        function saveRenameList(e) {
+            e.preventDefault();
+            const newName = els.renameListInput.value.trim();
+            if (newName && state.contextMenuListId) {
+                const list = state.lists.find(l => l.id === state.contextMenuListId);
+                if (list) { list.name = newName; saveStateAndRender(); showToast("List renamed."); }
+                closeRenameModal();
+            }
+        }
+
+        function deleteCurrentList() {
+            closeListMenu();
+            const listId = state.contextMenuListId;
+            if (listId === 'default') { showToast("Cannot delete 'My Tasks'."); return; }
+            if (listId === 'important') { showToast("Cannot delete Important filter."); return; }
+            
+            const list = state.lists.find(l => l.id === listId);
+            if (list && confirm(`Are you sure you want to delete "${list.name}" and all its tasks?`)) {
+                state.tasks = state.tasks.filter(t => t.listId !== listId);
+                state.lists = state.lists.filter(l => l.id !== listId);
+                if (state.activeListId === listId) state.activeListId = 'default';
+                saveStateAndRender();
+                showToast("List deleted.");
+            }
+        }
+
+        function clearCompletedTasks() {
+            if(confirm("Are you sure you want to permanently delete all completed tasks?")) {
+                state.tasks = state.tasks.filter(t => !t.completed);
+                saveStateAndRender();
+                els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex');
+                showToast("Completed tasks cleared.");
+            }
+        }
+        
+        function markAllCompleted() {
+            state.tasks.forEach(t => t.completed = true);
+            saveStateAndRender();
+            els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex');
+            showToast("All tasks marked done.");
+            confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 }, zIndex: 1000 });
+        }
+
+        function deleteAllTasks() {
+            if(confirm("Are you sure you want to permanently delete ALL tasks? This action cannot be undone.")) {
+                state.tasks = [];
+                saveStateAndRender();
+                els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex');
+                showToast("All tasks deleted.");
+            }
+        }
+
+        function exportData() {
+            // Strip files before export to keep JSON small
+            const exportData = {...state};
+            exportData.tasks = state.tasks.map(t => { const c = {...t}; delete c.files; return c; });
+            
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "neo-tasks-backup.json");
+            document.body.appendChild(downloadAnchorNode); 
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex');
+        }
+
+        // --- UI Interactions ---
+
+        function autoFetchLocation(type) {
+            const input = document.getElementById(`${type}-task-location`);
+            if (navigator.geolocation) {
+                input.placeholder = "Fetching location...";
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                        const data = await res.json();
+                        const locName = data.address.city || data.address.town || data.address.village || data.address.county || "Current Location";
+                        input.value = locName;
+                    } catch(e) {
+                        input.value = `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
+                    }
+                }, () => { input.placeholder = "Location access denied."; }, {timeout: 5000});
+            }
+        }
+
+        function openNewTaskScreen() {
+            if(els.newTaskTitle) els.newTaskTitle.value = '';
+            if(els.newTaskDetails) els.newTaskDetails.value = '';
+            
+            // Auto date to current time
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            if(els.newTaskDate) els.newTaskDate.value = now.toISOString().slice(0,16);
+            
+            if(els.newTaskRepeat) els.newTaskRepeat.value = 'none';
+            if(els.newTaskLocation) els.newTaskLocation.value = '';
+            if(els.newTaskFile) els.newTaskFile.value = '';
+            if(els.newTaskList) els.newTaskList.value = state.activeListId === 'important' ? 'default' : state.activeListId; 
+            
+            if (state.activeListId === 'important' && els.newTaskImportant) els.newTaskImportant.classList.add('checked');
+            else if(els.newTaskImportant) els.newTaskImportant.classList.remove('checked');
+            
+            if(els.newTaskNotify) els.newTaskNotify.classList.remove('checked');
+
+            state.tempSubtasks = []; renderTempSubtasks('new');
+            
+            if(els.newTaskScreen) els.newTaskScreen.classList.add('open');
+            // Instant focus for mobile keyboards
+            setTimeout(()=> { 
+                if(els.newTaskTitle) {
+                    els.newTaskTitle.focus(); 
+                    els.newTaskTitle.click();
+                }
+            }, 100);
+            setTimeout(()=> { if(els.newTaskTitle) els.newTaskTitle.focus(); }, 350);
+        }
+
+        function closeNewTaskScreen() { if(els.newTaskScreen) els.newTaskScreen.classList.remove('open'); }
+
+        function addTempSubtask(type) {
+            const inputEl = document.getElementById(`${type}-subtask-input`);
+            if(!inputEl) return;
+            const title = inputEl.value.trim();
+            if(title) {
+                state.tempSubtasks.push({ title, completed: false });
+                inputEl.value = ''; renderTempSubtasks(type);
+            }
+            inputEl.focus();
+        }
+
+        function removeTempSubtask(type, index) { state.tempSubtasks.splice(index, 1); renderTempSubtasks(type); }
+
+        function renderTempSubtasks(type) {
+            const container = document.getElementById(`${type}-subtasks-container`);
+            if(!container) return;
+            container.innerHTML = state.tempSubtasks.map((st, idx) => `
+                <div class="flex justify-between items-center p-2 neo-border bg-[rgba(var(--black-rgb),0.05)] text-sm">
+                    <span class="truncate font-bold">${escapeHTML(st.title)}</span>
+                    <button type="button" class="text-red-500 hover:opacity-70 font-bold px-2" onclick="removeTempSubtask('${type}', ${idx})"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+            `).join('');
+            lucide.createIcons({root: container});
+        }
+
+        // Swipe Delete Logic
+        let swipeState = { id: null, startX: 0, currentX: 0 };
+        function swipeStart(e, id) {
+            if(e.touches.length > 1) return;
+            swipeState.id = id; swipeState.startX = e.touches[0].clientX;
+            document.getElementById(`task-content-${id}`).style.transition = 'none'; 
+        }
+        function swipeMove(e, id) {
+            if(swipeState.id !== id) return;
+            const currentX = e.touches[0].clientX;
+            const diff = swipeState.startX - currentX;
+            if (diff > 0) document.getElementById(`task-content-${id}`).style.transform = `translateX(-${Math.min(diff, 120)}px)`;
+        }
+        function swipeEnd(e, id) {
+            if(swipeState.id !== id) return;
+            const currentX = e.changedTouches[0].clientX;
+            const diff = swipeState.startX - currentX;
+            const el = document.getElementById(`task-content-${id}`);
+            el.style.transition = 'transform 0.2s ease-out';
+            if (diff > 75) {
+                el.style.transform = `translateX(-100vw)`;
+                setTimeout(() => { toggleTask(id); el.style.transform = `translateX(0)`; }, 200);
+            } else { el.style.transform = `translateX(0)`; }
+            swipeState.id = null;
+        }
+
+        // Mobile Swipe Up to Add Logic
+        let fabSwipe = { startY: 0 };
+        if(els.fabAddTask) {
+            els.fabAddTask.addEventListener('touchstart', (e) => { fabSwipe.startY = e.touches[0].clientY; }, {passive: true});
+            els.fabAddTask.addEventListener('touchend', (e) => {
+                if (fabSwipe.startY - e.changedTouches[0].clientY > 30) openNewTaskScreen();
+            }, {passive: true});
+        }
+
+        // Mobile Swipe Down to Close Menus
+        let newTaskSwipeDown = { startY: 0 };
+        if(els.newTaskScreen) {
+            els.newTaskScreen.addEventListener('touchstart', (e) => { newTaskSwipeDown.startY = e.touches[0].clientY; }, {passive: true});
+            els.newTaskScreen.addEventListener('touchend', (e) => {
+                const scrollArea = els.newTaskScreen.querySelector('.overflow-y-auto');
+                const diff = e.changedTouches[0].clientY - newTaskSwipeDown.startY;
+                if (diff > 60 && (!scrollArea || scrollArea.scrollTop <= 0)) { closeNewTaskScreen(); }
+            }, {passive: true});
+        }
+
+        let editTaskSwipeDown = { startY: 0 };
+        if(els.editModal) {
+            els.editModal.addEventListener('touchstart', (e) => { editTaskSwipeDown.startY = e.touches[0].clientY; }, {passive: true});
+            els.editModal.addEventListener('touchend', (e) => {
+                const scrollArea = els.editModal.querySelector('.overflow-y-auto');
+                const diff = e.changedTouches[0].clientY - editTaskSwipeDown.startY;
+                if (diff > 60 && (!scrollArea || scrollArea.scrollTop <= 0)) { closeEditModal(); }
+            }, {passive: true});
+        }
+
+        // Other Modals
+        function openEditModal(taskId) {
+            state.editingTaskId = taskId;
+            const task = state.tasks.find(t => t.id === taskId);
+            if (task) {
+                if(els.editTaskTitle) els.editTaskTitle.value = task.title;
+                if(els.editTaskDetails) els.editTaskDetails.value = task.details || '';
+                if(els.editTaskList) els.editTaskList.value = task.listId;
+                if(els.editTaskDate) els.editTaskDate.value = task.dueDate || '';
+                if(els.editTaskRepeat) els.editTaskRepeat.value = task.repeat || 'none';
+                if(els.editTaskLocation) els.editTaskLocation.value = task.location || '';
+                if(els.editTaskFile) els.editTaskFile.value = '';
+                
+                state.tempSubtasks = task.subtasks ? [...task.subtasks] : [];
+                renderTempSubtasks('edit');
+                
+                if (task.important && els.editTaskImportant) els.editTaskImportant.classList.add('checked'); 
+                else if (els.editTaskImportant) els.editTaskImportant.classList.remove('checked');
+                
+                if (task.pushNotify && els.editTaskNotify) els.editTaskNotify.classList.add('checked'); 
+                else if (els.editTaskNotify) els.editTaskNotify.classList.remove('checked');
+
+                if(els.editModal) els.editModal.classList.add('open');
+                setTimeout(()=> { 
+                    if(els.editTaskTitle) {
+                        els.editTaskTitle.focus(); 
+                        els.editTaskTitle.click();
+                    }
+                }, 100);
+                setTimeout(()=> { if(els.editTaskTitle) els.editTaskTitle.focus(); }, 350);
+            }
+        }
+        function closeEditModal() { if(els.editModal) els.editModal.classList.remove('open'); state.editingTaskId = null; }
+        
+        function openListMenu(e, listId) {
+            if(listId === 'important') return;
+            e.preventDefault(); e.stopPropagation();
+            state.contextMenuListId = listId;
+            const rect = e.currentTarget.getBoundingClientRect();
+            if(els.contextMenu) {
+                els.contextMenu.style.top = `${rect.bottom + 8}px`;
+                if (rect.right - 144 < 0) els.contextMenu.style.left = `${rect.left}px`; else els.contextMenu.style.left = `${rect.right - 144}px`;
+                els.contextMenu.style.display = 'flex';
+            }
+        }
+        function closeListMenu() { if(els.contextMenu) els.contextMenu.style.display = 'none'; }
+        function openRenameModal() { 
+            closeListMenu(); 
+            const list = state.lists.find(l => l.id === state.contextMenuListId); 
+            if (list && els.renameModal) { 
+                if(els.renameListInput) els.renameListInput.value = list.name; 
+                els.renameModal.classList.add('open'); 
+                setTimeout(() => { if(els.renameListInput) els.renameListInput.focus(); }, 100); 
+            } 
+        }
+        function closeRenameModal() { if(els.renameModal) els.renameModal.classList.remove('open'); }
+
+        // Settings
+        function openSettingsScreen() {
+            if(els.settingsScreen) els.settingsScreen.classList.add('open');
+            const st = document.getElementById('setting-theme'); if(st) st.value = state.settings.theme;
+            const sa = document.getElementById('setting-accent'); if(sa) sa.value = state.settings.accent || 'default';
+            const sf = document.getElementById('setting-font'); if(sf) sf.value = state.settings.font;
+            const sd = document.getElementById('setting-density'); if(sd) sd.value = state.settings.density || 'comfortable';
+            
+            const checkbox = document.querySelector('#setting-notifications i');
+            if(checkbox) {
+                if (state.settings.notifications) checkbox.classList.remove('hidden'); 
+                else checkbox.classList.add('hidden');
+            }
+            updateAuthUI();
+        }
+        function closeSettingsScreen() { if(els.settingsScreen) els.settingsScreen.classList.remove('open'); }
+        function toggleToolsDropdown(e) { 
+            e.stopPropagation(); 
+            if(els.toolsDropdown) {
+                els.toolsDropdown.classList.toggle('hidden'); 
+                els.toolsDropdown.classList.toggle('flex'); 
+            }
+            const st = document.getElementById('sort-tasks');
+            if(st) st.value = state.currentSort; 
+        }
+        
+        function updateSettings(key, value) {
+            state.settings[key] = value;
+            applySettings();
+            saveStateAndRender();
+        }
+
+        // --- Vercel Web Push Notifications ---
+        
+        // Base64 to Uint8Array converter for VAPID key
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+            return outputArray;
+        }
+
+        // Simulated Vercel Push Service Worker Setup
+        async function setupVercelPush() {
+            // Note: A real service worker (sw.js) needs to be served from your domain to handle 'push' events.
+            // Since this is a single HTML file, we simulate the registration for demonstration:
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                showToast("Push notifications unsupported by browser.");
+                return false;
+            }
+            try {
+                // In production, you would point this to your actual service worker file on Vercel:
+                // const registration = await navigator.serviceWorker.register('/sw.js');
+                showToast("Requesting Push Permission...");
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') throw new Error("Permission not granted");
+                
+                // You will need to replace this with your VAPID public key generated via WebPush
+                const publicVapidKey = "BJThIGTZ_o18mFv3h7gBvwO-_VfX2N-qf9wS1-X41BqfUvI-3gP4f2qFj7aI_-8A_1G0P6Xv9a_Qe3-Dqf5w_Q0";
+                
+                /*
+                // Actually subscribe (Uncomment in production with real sw.js & VAPID key)
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+                });
+                
+                // Send subscription to Vercel API
+                await fetch(VERCEL_PUSH_URL + '/subscribe', {
+                    method: 'POST',
+                    body: JSON.stringify(subscription),
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.auth.token}` }
+                });
+                */
+
+                return true;
+            } catch (error) {
+                console.error('Service Worker Error', error);
+                return false;
+            }
+        }
+
+        async function toggleVercelNotifications() {
+            const checkbox = document.querySelector('#setting-notifications i');
+            if (!state.settings.notifications) {
+                const success = await setupVercelPush();
+                if (success) {
+                    state.settings.notifications = true; 
+                    if(checkbox) checkbox.classList.remove('hidden'); 
+                    saveStateAndRender();
+                    showToast("Nightly summary & alerts enabled (Vercel).");
+                }
+            } else { 
+                state.settings.notifications = false; 
+                if(checkbox) checkbox.classList.add('hidden'); 
+                saveStateAndRender(); 
+                showToast("Push notifications disabled.");
+            }
+        }
+
+        function applySettings() {
+            document.body.classList.remove('theme-dark', 'theme-claude');
+            if (state.settings.theme === 'dark') document.body.classList.add('theme-dark');
+            else if (state.settings.theme === 'claude') document.body.classList.add('theme-claude');
+            
+            document.body.classList.remove('accent-blue', 'accent-emerald', 'accent-rose');
+            if (state.settings.accent && state.settings.accent !== 'default') {
+                document.body.classList.add(`accent-${state.settings.accent}`);
+            }
+
+            document.body.classList.remove('density-compact');
+            if (state.settings.density === 'compact') document.body.classList.add('density-compact');
+            
+            document.documentElement.style.setProperty('--font-family', state.settings.font);
+        }
+
+        // --- Keyboard Shortcuts ---
+        window.addEventListener('keydown', (e) => {
+            // New Task: Cmd/Ctrl + K
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                openNewTaskScreen();
+            }
+            // Settings: Cmd/Ctrl + S
+            if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+                e.preventDefault();
+                if(els.settingsScreen.classList.contains('open')) closeSettingsScreen();
+                else openSettingsScreen();
+            }
+            // Escape: Close all modals
+            if (e.key === 'Escape') {
+                closeNewTaskScreen();
+                closeEditModal();
+                closeSettingsScreen();
+                closeRenameModal();
+                if(els.listModal) els.listModal.classList.remove('open');
+                if(els.toolsDropdown) els.toolsDropdown.classList.add('hidden');
+                closeListMenu();
+            }
+            // Views: 1, 2, 3
+            if (!e.metaKey && !e.ctrlKey && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                if(e.key === '1') switchView('home');
+                if(e.key === '2') switchView('list');
+                if(e.key === '3') switchView('calendar');
+            }
+        });
+
+        // --- Cloudflare Auth & 2-Way Sync ---
+        function showAuthToast() { 
+            if(getCookie('dismissed_auth')) return;
+            const toast = document.getElementById('auth-toast'); 
+            if (toast) { toast.style.right = '1.5rem'; setTimeout(closeAuthToast, 6000); } 
+        }
+        function closeAuthToast() { 
+            const toast = document.getElementById('auth-toast'); 
+            if (toast) toast.style.right = '-100%'; 
+            setCookie('dismissed_auth', 'true', 1);
+        }
+
+        async function handleAuth(action) {
+            const username = document.getElementById('auth-username').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
+            const msgEl = document.getElementById('auth-message');
+            if (!username || !password) { msgEl.textContent = "Username and password required."; msgEl.classList.remove('hidden'); return; }
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/${action}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    state.auth.username = username; state.auth.token = data.token;
+                    setCookie('auth_token', data.token, 30); setCookie('auth_username', username, 30);
+                    msgEl.classList.add('hidden');
+                    updateAuthUI();
+                    
+                    if (action === 'login') { await pullData(false); } 
+                    else { await pushData(false); }
+                    showToast("Successfully logged in.");
+                } else { msgEl.textContent = data.error || "Authentication failed."; msgEl.classList.remove('hidden'); }
+            } catch (err) { msgEl.textContent = "Network error. Worker might be offline."; msgEl.classList.remove('hidden'); }
+        }
+
+        function logout() {
+            state.auth.username = null; state.auth.token = null;
+            setCookie('auth_token', '', -1); setCookie('auth_username', '', -1);
+            updateAuthUI();
+            showToast("Logged out.");
+        }
+
+        function updateAuthUI() {
+            const form = document.getElementById('auth-form'); const loggedInView = document.getElementById('logged-in-view'); const status = document.getElementById('auth-status');
+            if(form && loggedInView && status) {
+                if (state.auth.token) {
+                    form.classList.add('hidden'); loggedInView.classList.remove('hidden');
+                    status.textContent = `Logged in as: ${state.auth.username}`; status.classList.add('text-green-500');
+                } else {
+                    form.classList.remove('hidden'); loggedInView.classList.add('hidden');
+                    status.textContent = "Not logged in. Data is stored locally."; status.classList.remove('text-green-500');
+                }
+            }
+        }
+
+        // PULL from Cloud
+        async function pullData(silent = false) {
+            if (!state.auth.token) return;
+            const btn = document.querySelector('#logged-in-view button');
+            let originalText = '';
+            if(!silent && btn) { originalText = btn.innerHTML; btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 mr-2 animate-spin"></i> Fetching...`; lucide.createIcons(); }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/sync`, { method: 'GET', headers: { 'Authorization': `Bearer ${state.auth.token}` }});
+                const data = await response.json();
+                if (data.success && data.serverData) {
+                    // Retain local files, overwrite everything else
+                    const localFilesMap = {};
+                    state.tasks.forEach(t => { if(t.files && t.files.length) localFilesMap[t.id] = t.files; });
+
+                    state.lists = data.serverData.lists || state.lists;
+                    state.settings = data.serverData.settings || state.settings;
+                    state.stats = data.serverData.stats || state.stats;
+                    
+                    state.tasks = (data.serverData.tasks || state.tasks).map(t => {
+                        if(localFilesMap[t.id]) t.files = localFilesMap[t.id];
+                        return t;
+                    });
+                    
+                    localStorage.setItem('neo-tasks-state', JSON.stringify({
+                        lists: state.lists, tasks: state.tasks, currentSort: state.currentSort, currentView: state.currentView,
+                        settings: state.settings, stats: state.stats, activeListId: state.activeListId
+                    }));
+                    
+                    applySettings(); render();
+                    if(!silent) showToast("Synced from cloud.");
+                }
+            } catch (err) { if(!silent) showToast("Failed to fetch cloud data."); } 
+            finally { if(!silent && btn) { btn.innerHTML = originalText; lucide.createIcons(); } }
+        }
+
+        // PUSH to Cloud
+        async function pushData(silent = false) {
+            if (!state.auth.token) return;
+            try {
+                // Remove files from payload to save bandwidth/KV space
+                const tasksToSync = state.tasks.map(t => { const copy = {...t}; delete copy.files; return copy; });
+                
+                const response = await fetch(`${API_URL}/api/sync`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.auth.token}` },
+                    body: JSON.stringify({ lists: state.lists, tasks: tasksToSync, settings: state.settings, stats: state.stats })
+                });
+                const data = await response.json();
+                if(!silent && data.success) showToast("Saved to cloud.");
+            } catch (err) { console.error("Auto-sync failed", err); } 
+        }
+
+        // Local fallback checker for task due notifications if push isn't configured
+        function checkNotifications() {
+            if (!("Notification" in window) || Notification.permission !== "granted") return;
+            const now = new Date();
+            state.tasks.forEach(task => {
+                if (!task.completed && task.dueDate && !task.notified) {
+                    const due = new Date(task.dueDate);
+                    if (due <= now) {
+                        new Notification("Task Due", { body: task.title });
+                        task.notified = true;
+                    }
+                }
+            });
+        }
+        setInterval(checkNotifications, 60000); 
+
+        // --- Init & Listeners ---
+        function escapeHTML(str) { const p = document.createElement('p'); p.appendChild(document.createTextNode(str)); return p.innerHTML; }
+
+        if(els.fabAddTask) els.fabAddTask.addEventListener('click', openNewTaskScreen);
+        if(els.closeNewTaskBtn) els.closeNewTaskBtn.addEventListener('click', closeNewTaskScreen);
+        if(els.newTaskForm) els.newTaskForm.addEventListener('submit', submitNewTask);
+        if(els.toggleCompletedBtn) els.toggleCompletedBtn.addEventListener('click', toggleCompletedSection);
+        if(els.editTaskForm) els.editTaskForm.addEventListener('submit', saveTask);
+        if(els.closeEditModalBtn) els.closeEditModalBtn.addEventListener('click', closeEditModal);
+        if(els.cancelEditBtn) els.cancelEditBtn.addEventListener('click', closeEditModal);
+        if(els.deleteTaskBtn) els.deleteTaskBtn.addEventListener('click', deleteTask);
+        
+        if(els.addListBtn) {
+            els.addListBtn.addEventListener('click', () => { 
+                if(els.newListInput) els.newListInput.value = ''; 
+                if(els.listModal) els.listModal.classList.add('open'); 
+                setTimeout(() => { if(els.newListInput) els.newListInput.focus(); }, 100); 
+            });
+        }
+        if(els.addListForm) els.addListForm.addEventListener('submit', addList);
+        if(els.cancelListBtn) els.cancelListBtn.addEventListener('click', () => { if(els.listModal) els.listModal.classList.remove('open'); });
+        
+        if(els.ctxRenameBtn) els.ctxRenameBtn.addEventListener('click', openRenameModal);
+        if(els.ctxDeleteBtn) els.ctxDeleteBtn.addEventListener('click', deleteCurrentList);
+        if(els.renameListForm) els.renameListForm.addEventListener('submit', saveRenameList);
+        if(els.cancelRenameBtn) els.cancelRenameBtn.addEventListener('click', closeRenameModal);
+
+        window.addEventListener('click', (e) => {
+            if (e.target === els.editModal) closeEditModal();
+            if (e.target === els.listModal) { if(els.listModal) els.listModal.classList.remove('open'); }
+            if (e.target === els.renameModal) closeRenameModal();
+            if (els.toolsDropdown && !els.toolsDropdown.classList.contains('hidden') && !e.target.closest('#tools-dropdown') && !e.target.closest('#fab-tools')) { els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex'); }
+            if (els.contextMenu && els.contextMenu.style.display === 'flex' && !e.target.closest('#list-context-menu') && !e.target.closest('.list-item')) { closeListMenu(); }
+        });
+
+        // App Boot
+        loadLocalState();
+        applySettings(); 
+        render();        
+        
+        if (!state.auth.token) { setTimeout(showAuthToast, 2000); } 
+        else { pullData(true); }
+
+    </script>
+</body>
+</html>
