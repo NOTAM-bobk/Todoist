@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tasks</title>
+    
+    <!-- PWA & Icons -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="image_bd669a.png">
+    <link rel="apple-touch-icon" href="image_bd669a.png">
+    <meta name="theme-color" content="#ffffff">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -158,11 +165,11 @@
             box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
         }
 
-        /* Custom Checkbox - "Printed in background" style */
+        /* Custom Checkbox - Explicit Circle */
         .neo-checkbox {
             width: 24px;
             height: 24px;
-            border: none; /* Removed box border */
+            border: 2px solid rgba(var(--black-rgb), 0.3);
             box-shadow: none;
             border-radius: 50%;
             cursor: pointer;
@@ -170,19 +177,21 @@
             align-items: center;
             justify-content: center;
             background: transparent;
-            color: rgba(var(--black-rgb), 0.2); /* Subtle outline color */
+            color: transparent;
             transition: all 0.15s ease-out;
             flex-shrink: 0;
         }
         .neo-checkbox:hover {
-            color: var(--accent);
-            background: rgba(var(--accent-rgb), 0.1);
-            transform: scale(1.1);
+            border-color: var(--accent);
+            background: rgba(var(--accent-rgb), 0.05);
+            transform: scale(1.05);
         }
         .neo-checkbox:active { transform: scale(0.9); }
         
         .neo-checkbox.checked {
-            color: var(--accent);
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--white);
         }
 
         /* Task Item Layout */
@@ -196,7 +205,7 @@
             background: var(--white);
             color: var(--black);
             margin: 0;
-            transition: box-shadow 0.15s, transform 0.15s, opacity 0.3s, padding 0.2s;
+            transition: box-shadow 0.15s, transform 0.15s, opacity 0.3s, padding 0.2s, border-top 0.1s;
             width: 100%;
         }
         .theme-claude .task-item {
@@ -204,6 +213,18 @@
             box-shadow: 0 2px 8px rgba(var(--black-rgb), 0.02);
         }
         
+        /* Drag and Drop states */
+        .drag-over {
+            border-top: 2px dashed var(--accent) !important;
+            transform: translateY(2px);
+        }
+        .drag-handle {
+            cursor: grab;
+            opacity: 0.2;
+            transition: opacity 0.2s;
+        }
+        .task-item:hover .drag-handle { opacity: 1; }
+
         /* Compact Density */
         body.density-compact .task-item { padding: 0.6rem 0.8rem; gap: 0.75rem; }
         body.density-compact .neo-input { padding: 0.5rem 0.75rem; }
@@ -232,7 +253,19 @@
             opacity: 0.5;
         }
 
-        /* Top Bar List Item (Glassmorphism Pill) */
+        /* Top Bar Container Anti-Dot Enforcement */
+        #lists-container, .list-item {
+            list-style: none !important;
+            list-style-type: none !important;
+            margin: 0;
+            padding: 0;
+        }
+        .list-item::before, .list-item::after {
+            content: none !important;
+            display: none !important;
+        }
+
+        /* Top Bar List Item (Auto-shaping Pill) */
         .list-item {
             cursor: pointer;
             padding: 0.5rem 1rem;
@@ -241,19 +274,16 @@
             display: flex;
             flex-direction: row;
             flex-wrap: nowrap;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
+            gap: 0.5rem;
             background-color: transparent;
             border: var(--border-width) solid transparent;
             transition: all 0.2s ease;
-            width: auto;
-            min-width: 140px;
+            width: max-content; /* Auto shape around text */
             color: rgba(var(--black-rgb), 0.5);
             white-space: nowrap;
         }
-        
-        .list-item > span:first-child { flex-grow: 1; text-align: center; padding-right: 0.5rem;}
-        .list-item > span:last-child { flex-shrink: 0; }
         
         .list-item:hover {
             color: rgba(var(--black-rgb), 0.9);
@@ -413,6 +443,7 @@
             transform: translateY(-2px);
         }
         
+        /* View Nav Links */
         .view-nav-btn {
             padding-bottom: 0.25rem;
             border-bottom: 2px solid transparent;
@@ -435,9 +466,9 @@
 
     <!-- Top Navigation (Groups/Lists) -->
     <nav class="flex items-center justify-center overflow-x-auto px-6 py-2 liquid-glass border-x-0 border-t-0 border-b-2 !rounded-none z-10 shrink-0 hide-scrollbar w-full">
-        <div id="lists-container" class="flex items-center justify-center flex-nowrap w-max gap-2">
+        <ul id="lists-container" class="flex items-center justify-center flex-nowrap w-max gap-2 m-0 p-0">
             <!-- Lists injected via JS -->
-        </div>
+        </ul>
         <div class="w-px h-5 bg-[rgba(var(--black-rgb),0.2)] mx-4 shrink-0"></div>
         <button id="add-list-btn" class="glass-oval shrink-0 p-2 text-sm font-bold flex items-center justify-center w-8 h-8" title="New List">
             <i data-lucide="plus" class="w-4 h-4"></i>
@@ -486,7 +517,7 @@
                     <div>
                         <label class="block font-bold uppercase text-xs mb-1">Sort Tasks</label>
                         <select id="sort-tasks" class="neo-input w-full cursor-pointer appearance-none rounded-none font-bold py-1 px-2 text-sm bg-transparent" onchange="state.currentSort = this.value; saveStateAndRender(); toggleToolsDropdown(new Event('click'));">
-                            <option value="default">Default</option>
+                            <option value="default">Default (Custom)</option>
                             <option value="date">By Date</option>
                             <option value="importance">Important First</option>
                             <option value="az">A-Z</option>
@@ -801,12 +832,22 @@
                 </div>
             </div>
 
-            <!-- Vercel Push Notifications Section -->
+            <!-- Preferences Section -->
             <div class="neo-border p-5 bg-[rgba(var(--black-rgb),0.02)] rounded-xl">
-                <h3 class="text-lg font-black uppercase mb-4 border-b border-[rgba(var(--black-rgb),0.1)] pb-2 flex items-center gap-2"><i data-lucide="bell-ring"></i> Vercel Push Notifications</h3>
-                <p class="text-xs font-semibold opacity-70 mb-4">Receive a nightly summary of your active tasks and alerts for specific due dates. Powered by Vercel.</p>
+                <h3 class="text-lg font-black uppercase mb-4 border-b border-[rgba(var(--black-rgb),0.1)] pb-2 flex items-center gap-2"><i data-lucide="sliders"></i> Preferences</h3>
+                
                 <div class="flex items-center justify-between mb-4">
-                    <label class="font-bold uppercase text-sm">Enable Web Push</label>
+                    <label class="font-bold uppercase text-sm">Show View Navigation Tabs</label>
+                    <div class="neo-checkbox" id="setting-view-nav" onclick="toggleViewNavSetting()">
+                        <i data-lucide="check" class="w-4 h-4 hidden text-[var(--white)]"></i>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex flex-col">
+                        <label class="font-bold uppercase text-sm">Push Notifications</label>
+                        <span class="text-xs opacity-70">Requires Vercel Backend</span>
+                    </div>
                     <div class="neo-checkbox" id="setting-notifications" onclick="toggleVercelNotifications()">
                         <i data-lucide="check" class="w-4 h-4 hidden text-[var(--white)]"></i>
                     </div>
@@ -855,18 +896,71 @@
             </div>
 
             <div class="text-center pt-4 pb-4 opacity-50 text-xs font-bold uppercase tracking-widest">
-                Neo Tasks v3.0.0 (Build 142)
+                Neo Tasks v3.1.5 (Build 171)
             </div>
         </div>
     </div>
 
+    <!-- New List Modal -->
+    <div id="list-modal" class="fixed inset-0 z-50 modal-overlay flex items-center justify-center p-4">
+        <div class="liquid-glass w-full max-w-sm p-6 relative modal-content">
+            <h3 class="text-xl font-black uppercase mb-4 border-b-2 border-[rgba(var(--black-rgb),0.1)] pb-2">Create New List</h3>
+            <form id="add-list-form" class="space-y-4">
+                <input type="text" id="new-list-input" class="neo-input w-full bg-transparent" placeholder="List Name" required autocomplete="off">
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" id="cancel-list-btn" class="neo-btn px-4 py-2 bg-transparent">Cancel</button>
+                    <button type="submit" class="neo-btn primary px-6 py-2">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
+        // --- System Setup ---
+        let audioCtx;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        function playSound(type) {
+            if(!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'complete') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+            } else if (type === 'add') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'delete') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.2);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+            }
+        }
+        window.addEventListener('click', initAudio, { once: true });
+        window.addEventListener('touchstart', initAudio, { once: true });
+
         // --- State Management & Storage ---
         const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
         const API_URL = 'https://neo-tasks-backend.sawyerbobk563.workers.dev'; 
-        const VERCEL_PUSH_URL = '/api/push'; // Vercel endpoint
+        const VERCEL_PUSH_URL = '/api/push'; 
 
-        // Default state
         let state = {
             lists: [{ id: 'default', name: 'My Tasks' }],
             tasks: [{ id: generateId(), listId: 'default', title: 'Welcome to Tasks', details: 'Swipe up on the plus icon to add a task!', completed: false, important: false, dueDate: '', repeat: 'none', location: '', notified: false, pushNotify: false, subtasks: [], files: [], createdAt: Date.now() }],
@@ -876,16 +970,15 @@
             showCompleted: false,
             contextMenuListId: null,
             currentSort: 'default',
-            currentView: 'home', // 'home', 'list', 'calendar'
+            currentView: 'home', 
             calendarSelectedDate: new Date().toISOString().split('T')[0],
             tempSubtasks: [],
             tempFiles: [],
-            settings: { theme: 'claude', accent: 'default', font: "'Space Grotesk'", density: 'comfortable', notifications: false },
+            settings: { theme: 'claude', accent: 'default', font: "'Space Grotesk'", density: 'comfortable', notifications: false, showViewNav: true },
             stats: { created: 1, completed: 0 },
             auth: { username: null, token: null }
         };
 
-        // Load from LocalStorage for instant load
         function loadLocalState() {
             try {
                 const saved = localStorage.getItem('neo-tasks-state');
@@ -899,14 +992,11 @@
                     state.stats = parsed.stats || { created: state.tasks.length, completed: state.tasks.filter(t=>t.completed).length };
                     state.activeListId = parsed.activeListId || state.activeListId;
                 }
-                
-                // Load Auth from Cookies
                 state.auth.token = getCookie('auth_token');
                 state.auth.username = getCookie('auth_username');
             } catch (e) { console.error("Could not load local state", e); }
         }
 
-        // Save to LocalStorage and Trigger Debounced Cloud Sync
         let syncTimeout = null;
         function saveStateAndRender() {
             try {
@@ -923,14 +1013,12 @@
             
             render();
             
-            // Debounced auto-sync to Cloudflare
             if (state.auth.token) {
                 clearTimeout(syncTimeout);
                 syncTimeout = setTimeout(() => { pushData(true); }, 2000);
             }
         }
 
-        // Cookie Helpers
         function setCookie(name, value, days) {
             let expires = "";
             if (days) {
@@ -951,7 +1039,6 @@
             return null;
         }
 
-        // Toasts
         function showToast(message) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -1017,7 +1104,7 @@
 
         function triggerViewAnimation() {
             els.mainViewArea.classList.remove('view-enter');
-            void els.mainViewArea.offsetWidth; // trigger reflow
+            void els.mainViewArea.offsetWidth;
             els.mainViewArea.classList.add('view-enter');
         }
 
@@ -1043,10 +1130,9 @@
         }
 
         function renderLists() {
-            // Render Important Group First
             const importantActiveCount = state.tasks.filter(t => t.important && !t.completed).length;
             const importantHtml = `
-                <div class="list-item ${'important' === state.activeListId ? 'active' : ''}" 
+                <li class="list-item ${'important' === state.activeListId ? 'active' : ''}" 
                      onclick="setActiveList('important')">
                     <span class="truncate font-fun text-lg text-center flex-1">
                         <i data-lucide="star" class="w-5 h-5 inline-block -mt-1 ${'important' === state.activeListId ? 'fill-[var(--accent)] text-[var(--accent)]' : ''}"></i>
@@ -1054,28 +1140,34 @@
                     <span class="text-xs px-2 py-0.5 rounded-full border ${'important' === state.activeListId ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-gray-400 text-gray-500'} font-black shrink-0">
                         ${importantActiveCount}
                     </span>
-                </div>
+                </li>
             `;
 
-            // Render Normal Groups
             const listsHtml = state.lists.map(list => {
                 const activeCount = state.tasks.filter(t => t.listId === list.id && !t.completed).length;
                 return `
-                    <div class="list-item ${list.id === state.activeListId ? 'active' : ''}" 
+                    <li class="list-item ${list.id === state.activeListId ? 'active' : ''}" 
                          onclick="setActiveList('${list.id}')"
                          oncontextmenu="openListMenu(event, '${list.id}')">
                         <span class="truncate font-fun text-lg text-center flex-1">${escapeHTML(list.name)}</span>
                         <span class="text-xs px-2 py-0.5 rounded-full border ${list.id === state.activeListId ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-gray-400 text-gray-500'} font-black shrink-0 ml-2">
                             ${activeCount}
                         </span>
-                    </div>
+                    </li>
                 `;
             });
 
-            els.listsContainer.innerHTML = [importantHtml, ...listsHtml].join('');
+            els.listsContainer.innerHTML = importantHtml + listsHtml.join('');
         }
 
         function renderViewNav() {
+            if (state.settings.showViewNav === false) {
+                els.viewNavContainer.style.display = 'none';
+                return;
+            } else {
+                els.viewNavContainer.style.display = 'flex';
+            }
+
             const buttons = els.viewNavContainer.querySelectorAll('button');
             buttons.forEach(btn => btn.classList.remove('active'));
             if(state.currentView === 'home' && buttons[0]) buttons[0].classList.add('active');
@@ -1102,8 +1194,7 @@
             } else if (state.currentSort === 'az') {
                 return taskArray.sort((a, b) => a.title.localeCompare(b.title));
             }
-            // Default sort: newest created first
-            return taskArray.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+            return taskArray;
         }
 
         function renderMainArea() {
@@ -1121,9 +1212,9 @@
                 const completedHtml = completed.map(createTaskHTML).join('');
                 
                 els.mainViewArea.innerHTML = `
-                    <div id="active-tasks" class="space-y-4 mb-4">${activeHtml}</div>
+                    <div id="active-tasks" class="space-y-4 mb-4" ondragover="dragOver(event)" ondragleave="dragLeave(event)">${activeHtml}</div>
                     <div class="mt-8 pt-6 border-t-2 border-[rgba(var(--black-rgb),0.1)]">
-                        <button onclick="toggleCompletedSection()" class="flex items-center gap-2 font-bold uppercase tracking-wider text-sm mb-2 hover:opacity-80 px-3 py-2 neo-border transition-colors bg-[var(--black)] text-[var(--white)]" style="display: ${completed.length > 0 ? 'inline-flex' : 'none'}">
+                        <button onclick="toggleCompletedSection()" class="flex items-center gap-2 font-bold uppercase tracking-wider text-sm mb-2 hover:opacity-80 transition-colors text-[rgba(var(--black-rgb),0.6)] bg-transparent border-0 shadow-none hover:text-[var(--black)] p-0" style="display: ${completed.length > 0 ? 'inline-flex' : 'none'}">
                             <i data-lucide="chevron-down" class="w-4 h-4 chevron ${state.showCompleted ? 'open' : ''}"></i>
                             Completed (<span id="completed-count">${completed.length}</span>)
                         </button>
@@ -1136,7 +1227,6 @@
                 `;
             } 
             else if (state.currentView === 'list') {
-                // Group by Creation Date
                 const groups = {};
                 state.tasks.forEach(t => {
                     if (t.completed) return;
@@ -1200,10 +1290,7 @@
                 }
                 html += `</div>`;
                 
-                // Show tasks for selected date
                 const selectedTasks = state.tasks.filter(t => !t.completed && t.dueDate && t.dueDate.startsWith(state.calendarSelectedDate));
-                
-                // Construct safe Date display without timezone drift issues
                 const [y, m, d] = state.calendarSelectedDate.split('-');
                 const displayDate = new Date(y, m-1, d).toLocaleDateString(undefined, {weekday: 'short', month:'short', day:'numeric'});
 
@@ -1220,7 +1307,7 @@
         }
 
         function createTaskHTML(task) {
-            const dateHtml = task.dueDate ? `<span class="text-xs font-bold flex items-center gap-1 ${task.completed ? 'opacity-50' : 'text-blue-500'}"><i data-lucide="calendar" class="w-3 h-3"></i> ${new Date(task.dueDate).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})} ${task.repeat !== 'none' ? '<i data-lucide="repeat" class="w-3 h-3 ml-1"></i>' : ''}</span>` : '';
+            const dateHtml = task.dueDate ? `<span class="text-xs font-bold flex items-center gap-1 ${task.completed ? 'opacity-50' : 'text-[var(--accent)] opacity-80'}"><i data-lucide="calendar" class="w-3 h-3"></i> ${new Date(task.dueDate).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})} ${task.repeat !== 'none' ? '<i data-lucide="repeat" class="w-3 h-3 ml-1"></i>' : ''}</span>` : '';
             const locHtml = task.location ? `<span class="text-xs font-bold flex items-center gap-1 opacity-70"><i data-lucide="map-pin" class="w-3 h-3"></i> ${escapeHTML(task.location)}</span>` : '';
             
             const metaBarHtml = (dateHtml || locHtml) ? `<div class="flex flex-wrap gap-3 mt-2">${dateHtml}${locHtml}</div>` : '';
@@ -1249,18 +1336,28 @@
             ` : '';
 
             const isAnimating = (task.id === state.animatingTaskId) ? 'animating-in' : '';
+            const draggable = state.currentSort === 'default' && !task.completed ? 'true' : 'false';
 
             return `
-                <div id="swipe-wrapper-${task.id}" class="relative mb-4 group overflow-hidden neo-border bg-[var(--accent)] ${isAnimating}">
+                <div id="swipe-wrapper-${task.id}" class="relative mb-4 group overflow-hidden neo-border bg-[var(--accent)] ${isAnimating}"
+                     draggable="${draggable}"
+                     ondragstart="dragStart(event, '${task.id}')"
+                     ondragend="dragEnd(event, '${task.id}')"
+                     ondrop="drop(event, '${task.id}')">
+                     
                     <div class="absolute inset-0 flex justify-end items-center px-6 font-black text-[var(--white)] text-xl tracking-widest uppercase">Complete</div>
                     <div id="task-content-${task.id}" class="task-item border-none m-0 relative z-10 w-full"
                          ontouchstart="swipeStart(event, '${task.id}')"
                          ontouchmove="swipeMove(event, '${task.id}')"
                          ontouchend="swipeEnd(event, '${task.id}')">
                         
+                        <div class="drag-handle flex flex-col items-center justify-center pr-2 hidden sm:flex pt-1" title="Drag to reorder">
+                            <i data-lucide="grip-vertical" class="w-5 h-5"></i>
+                        </div>
+
                         <div class="neo-checkbox ${task.completed ? 'checked' : ''} mt-1 z-20 relative" 
                              onclick="toggleTask('${task.id}')">
-                            ${task.completed ? '<i data-lucide="check" class="w-5 h-5 text-[var(--accent)]"></i>' : '<div class="w-3 h-3 rounded-full border-2 border-current opacity-40"></div>'}
+                            ${task.completed ? '<i data-lucide="check" class="w-5 h-5 text-[var(--white)]"></i>' : ''}
                         </div>
 
                         <div class="flex-1 cursor-pointer min-w-0" onclick="openEditModal('${task.id}')">
@@ -1276,11 +1373,59 @@
             `;
         }
 
-        // --- Actions (all wrapped with saveStateAndRender) ---
+        // --- Drag and Drop Logic ---
+        let draggedTaskId = null;
+
+        function dragStart(e, id) {
+            if(state.currentSort !== 'default') return e.preventDefault();
+            draggedTaskId = id;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', id);
+            setTimeout(() => { const el = document.getElementById(`swipe-wrapper-${id}`); if(el) el.style.opacity = '0.5'; }, 0);
+        }
+
+        function dragEnd(e, id) {
+            const el = document.getElementById(`swipe-wrapper-${id}`);
+            if(el) el.style.opacity = '1';
+            draggedTaskId = null;
+            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        }
+
+        function dragOver(e) {
+            if(state.currentSort !== 'default') return;
+            e.preventDefault();
+            const wrapper = e.target.closest('[id^="swipe-wrapper-"]');
+            if (wrapper && wrapper.id !== `swipe-wrapper-${draggedTaskId}`) {
+                wrapper.classList.add('drag-over');
+            }
+        }
+
+        function dragLeave(e) {
+            const wrapper = e.target.closest('[id^="swipe-wrapper-"]');
+            if(wrapper) wrapper.classList.remove('drag-over');
+        }
+
+        function drop(e, targetId) {
+            e.preventDefault();
+            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            
+            if (!draggedTaskId || draggedTaskId === targetId || state.currentSort !== 'default') return;
+
+            const draggedIdx = state.tasks.findIndex(t => t.id === draggedTaskId);
+            const targetIdx = state.tasks.findIndex(t => t.id === targetId);
+            
+            if (draggedIdx > -1 && targetIdx > -1) {
+                const [movedTask] = state.tasks.splice(draggedIdx, 1);
+                state.tasks.splice(targetIdx, 0, movedTask);
+                saveStateAndRender();
+            }
+        }
+
+        // --- Actions ---
 
         function setActiveList(listId) {
             state.activeListId = listId;
-            state.currentView = 'home'; // Reset to home view when changing lists
+            state.currentView = 'home';
             triggerViewAnimation();
             saveStateAndRender();
             const activeEl = els.listsContainer.querySelector('.active');
@@ -1295,6 +1440,7 @@
 
                 if (!wasCompleted) {
                     state.stats.completed++;
+                    playSound('complete');
                     confetti({
                         particleCount: 100, spread: 70, origin: { y: 0.6 }, zIndex: 1000,
                         colors: ['#000', '#666', '#d97757', '#2563eb', '#059669', '#e11d48']
@@ -1342,7 +1488,6 @@
             saveStateAndRender();
         }
 
-        // File Readers
         function readFiles(inputEl) {
             return Promise.all(Array.from(inputEl.files).map(file => {
                 return new Promise((resolve) => {
@@ -1372,6 +1517,7 @@
                 state.animatingTaskId = newId; 
                 state.stats.created++;
                 
+                playSound('add');
                 saveStateAndRender();
                 closeNewTaskScreen();
                 showToast("Task created.");
@@ -1402,6 +1548,7 @@
                 task.listId = els.editTaskList.value;
                 if (oldListId !== task.listId) state.activeListId = task.listId;
                 
+                playSound('add');
                 saveStateAndRender();
                 closeEditModal();
                 showToast("Task updated.");
@@ -1411,6 +1558,7 @@
         function deleteTask() {
             if (state.editingTaskId) {
                 state.tasks = state.tasks.filter(t => t.id !== state.editingTaskId);
+                playSound('delete');
                 saveStateAndRender();
                 closeEditModal();
                 showToast("Task deleted.");
@@ -1424,6 +1572,8 @@
                 const newList = { id: generateId(), name: listName };
                 state.lists.push(newList);
                 state.activeListId = newList.id;
+                els.newListInput.value = '';
+                playSound('add');
                 saveStateAndRender();
                 els.listModal.classList.remove('open');
                 showToast(`List "${listName}" created.`);
@@ -1451,6 +1601,7 @@
                 state.tasks = state.tasks.filter(t => t.listId !== listId);
                 state.lists = state.lists.filter(l => l.id !== listId);
                 if (state.activeListId === listId) state.activeListId = 'default';
+                playSound('delete');
                 saveStateAndRender();
                 showToast("List deleted.");
             }
@@ -1459,6 +1610,7 @@
         function clearCompletedTasks() {
             if(confirm("Are you sure you want to permanently delete all completed tasks?")) {
                 state.tasks = state.tasks.filter(t => !t.completed);
+                playSound('delete');
                 saveStateAndRender();
                 els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex');
                 showToast("Completed tasks cleared.");
@@ -1467,6 +1619,7 @@
         
         function markAllCompleted() {
             state.tasks.forEach(t => t.completed = true);
+            playSound('complete');
             saveStateAndRender();
             els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex');
             showToast("All tasks marked done.");
@@ -1476,6 +1629,7 @@
         function deleteAllTasks() {
             if(confirm("Are you sure you want to permanently delete ALL tasks? This action cannot be undone.")) {
                 state.tasks = [];
+                playSound('delete');
                 saveStateAndRender();
                 els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex');
                 showToast("All tasks deleted.");
@@ -1483,7 +1637,6 @@
         }
 
         function exportData() {
-            // Strip files before export to keep JSON small
             const exportData = {...state};
             exportData.tasks = state.tasks.map(t => { const c = {...t}; delete c.files; return c; });
             
@@ -1521,7 +1674,6 @@
             if(els.newTaskTitle) els.newTaskTitle.value = '';
             if(els.newTaskDetails) els.newTaskDetails.value = '';
             
-            // Auto date to current time
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             if(els.newTaskDate) els.newTaskDate.value = now.toISOString().slice(0,16);
@@ -1539,14 +1691,11 @@
             state.tempSubtasks = []; renderTempSubtasks('new');
             
             if(els.newTaskScreen) els.newTaskScreen.classList.add('open');
-            // Instant focus for mobile keyboards
-            setTimeout(()=> { 
-                if(els.newTaskTitle) {
-                    els.newTaskTitle.focus(); 
-                    els.newTaskTitle.click();
-                }
-            }, 100);
-            setTimeout(()=> { if(els.newTaskTitle) els.newTaskTitle.focus(); }, 350);
+            
+            // Critical for iOS Autofocus: Must be completely synchronous with click event
+            if(els.newTaskTitle) {
+                els.newTaskTitle.focus(); 
+            }
         }
 
         function closeNewTaskScreen() { if(els.newTaskScreen) els.newTaskScreen.classList.remove('open'); }
@@ -1576,33 +1725,34 @@
             lucide.createIcons({root: container});
         }
 
-        // Swipe Delete Logic
+        // --- Swipe Logic ---
         let swipeState = { id: null, startX: 0, currentX: 0 };
         function swipeStart(e, id) {
             if(e.touches.length > 1) return;
             swipeState.id = id; swipeState.startX = e.touches[0].clientX;
-            document.getElementById(`task-content-${id}`).style.transition = 'none'; 
+            const contentEl = document.getElementById(`task-content-${id}`);
+            if(contentEl) contentEl.style.transition = 'none'; 
         }
         function swipeMove(e, id) {
             if(swipeState.id !== id) return;
             const currentX = e.touches[0].clientX;
             const diff = swipeState.startX - currentX;
-            if (diff > 0) document.getElementById(`task-content-${id}`).style.transform = `translateX(-${Math.min(diff, 120)}px)`;
+            const contentEl = document.getElementById(`task-content-${id}`);
+            if (diff > 0 && contentEl) contentEl.style.transform = `translateX(-${Math.min(diff, 120)}px)`;
         }
         function swipeEnd(e, id) {
             if(swipeState.id !== id) return;
             const currentX = e.changedTouches[0].clientX;
             const diff = swipeState.startX - currentX;
             const el = document.getElementById(`task-content-${id}`);
-            el.style.transition = 'transform 0.2s ease-out';
-            if (diff > 75) {
+            if(el) el.style.transition = 'transform 0.2s ease-out';
+            if (diff > 75 && el) {
                 el.style.transform = `translateX(-100vw)`;
                 setTimeout(() => { toggleTask(id); el.style.transform = `translateX(0)`; }, 200);
-            } else { el.style.transform = `translateX(0)`; }
+            } else if (el) { el.style.transform = `translateX(0)`; }
             swipeState.id = null;
         }
 
-        // Mobile Swipe Up to Add Logic
         let fabSwipe = { startY: 0 };
         if(els.fabAddTask) {
             els.fabAddTask.addEventListener('touchstart', (e) => { fabSwipe.startY = e.touches[0].clientY; }, {passive: true});
@@ -1611,7 +1761,6 @@
             }, {passive: true});
         }
 
-        // Mobile Swipe Down to Close Menus
         let newTaskSwipeDown = { startY: 0 };
         if(els.newTaskScreen) {
             els.newTaskScreen.addEventListener('touchstart', (e) => { newTaskSwipeDown.startY = e.touches[0].clientY; }, {passive: true});
@@ -1632,7 +1781,7 @@
             }, {passive: true});
         }
 
-        // Other Modals
+        // --- Modals ---
         function openEditModal(taskId) {
             state.editingTaskId = taskId;
             const task = state.tasks.find(t => t.id === taskId);
@@ -1655,13 +1804,11 @@
                 else if (els.editTaskNotify) els.editTaskNotify.classList.remove('checked');
 
                 if(els.editModal) els.editModal.classList.add('open');
-                setTimeout(()=> { 
-                    if(els.editTaskTitle) {
-                        els.editTaskTitle.focus(); 
-                        els.editTaskTitle.click();
-                    }
-                }, 100);
-                setTimeout(()=> { if(els.editTaskTitle) els.editTaskTitle.focus(); }, 350);
+                
+                // Synchronous Focus
+                if(els.editTaskTitle) {
+                    els.editTaskTitle.focus();
+                }
             }
         }
         function closeEditModal() { if(els.editModal) els.editModal.classList.remove('open'); state.editingTaskId = null; }
@@ -1690,6 +1837,17 @@
         function closeRenameModal() { if(els.renameModal) els.renameModal.classList.remove('open'); }
 
         // Settings
+        function toggleViewNavSetting() {
+            const checkbox = document.querySelector('#setting-view-nav i');
+            state.settings.showViewNav = state.settings.showViewNav === false ? true : false;
+            if (state.settings.showViewNav) {
+                if(checkbox) checkbox.classList.remove('hidden');
+            } else {
+                if(checkbox) checkbox.classList.add('hidden');
+            }
+            saveStateAndRender();
+        }
+
         function openSettingsScreen() {
             if(els.settingsScreen) els.settingsScreen.classList.add('open');
             const st = document.getElementById('setting-theme'); if(st) st.value = state.settings.theme;
@@ -1701,6 +1859,12 @@
             if(checkbox) {
                 if (state.settings.notifications) checkbox.classList.remove('hidden'); 
                 else checkbox.classList.add('hidden');
+            }
+            
+            const vnCheckbox = document.querySelector('#setting-view-nav i');
+            if(vnCheckbox) {
+                if (state.settings.showViewNav !== false) vnCheckbox.classList.remove('hidden'); 
+                else vnCheckbox.classList.add('hidden');
             }
             updateAuthUI();
         }
@@ -1722,8 +1886,6 @@
         }
 
         // --- Vercel Web Push Notifications ---
-        
-        // Base64 to Uint8Array converter for VAPID key
         function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - base64String.length % 4) % 4);
             const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
@@ -1733,39 +1895,15 @@
             return outputArray;
         }
 
-        // Simulated Vercel Push Service Worker Setup
         async function setupVercelPush() {
-            // Note: A real service worker (sw.js) needs to be served from your domain to handle 'push' events.
-            // Since this is a single HTML file, we simulate the registration for demonstration:
             if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
                 showToast("Push notifications unsupported by browser.");
                 return false;
             }
             try {
-                // In production, you would point this to your actual service worker file on Vercel:
-                // const registration = await navigator.serviceWorker.register('/sw.js');
                 showToast("Requesting Push Permission...");
                 const permission = await Notification.requestPermission();
                 if (permission !== 'granted') throw new Error("Permission not granted");
-                
-                // You will need to replace this with your VAPID public key generated via WebPush
-                const publicVapidKey = "BJThIGTZ_o18mFv3h7gBvwO-_VfX2N-qf9wS1-X41BqfUvI-3gP4f2qFj7aI_-8A_1G0P6Xv9a_Qe3-Dqf5w_Q0";
-                
-                /*
-                // Actually subscribe (Uncomment in production with real sw.js & VAPID key)
-                const subscription = await registration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
-                });
-                
-                // Send subscription to Vercel API
-                await fetch(VERCEL_PUSH_URL + '/subscribe', {
-                    method: 'POST',
-                    body: JSON.stringify(subscription),
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.auth.token}` }
-                });
-                */
-
                 return true;
             } catch (error) {
                 console.error('Service Worker Error', error);
@@ -1809,18 +1947,14 @@
 
         // --- Keyboard Shortcuts ---
         window.addEventListener('keydown', (e) => {
-            // New Task: Cmd/Ctrl + K
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                e.preventDefault();
-                openNewTaskScreen();
+                e.preventDefault(); openNewTaskScreen();
             }
-            // Settings: Cmd/Ctrl + S
             if ((e.metaKey || e.ctrlKey) && e.key === 's') {
                 e.preventDefault();
-                if(els.settingsScreen.classList.contains('open')) closeSettingsScreen();
+                if(els.settingsScreen && els.settingsScreen.classList.contains('open')) closeSettingsScreen();
                 else openSettingsScreen();
             }
-            // Escape: Close all modals
             if (e.key === 'Escape') {
                 closeNewTaskScreen();
                 closeEditModal();
@@ -1830,7 +1964,6 @@
                 if(els.toolsDropdown) els.toolsDropdown.classList.add('hidden');
                 closeListMenu();
             }
-            // Views: 1, 2, 3
             if (!e.metaKey && !e.ctrlKey && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
                 if(e.key === '1') switchView('home');
                 if(e.key === '2') switchView('list');
@@ -1894,7 +2027,6 @@
             }
         }
 
-        // PULL from Cloud
         async function pullData(silent = false) {
             if (!state.auth.token) return;
             const btn = document.querySelector('#logged-in-view button');
@@ -1905,7 +2037,6 @@
                 const response = await fetch(`${API_URL}/api/sync`, { method: 'GET', headers: { 'Authorization': `Bearer ${state.auth.token}` }});
                 const data = await response.json();
                 if (data.success && data.serverData) {
-                    // Retain local files, overwrite everything else
                     const localFilesMap = {};
                     state.tasks.forEach(t => { if(t.files && t.files.length) localFilesMap[t.id] = t.files; });
 
@@ -1930,13 +2061,10 @@
             finally { if(!silent && btn) { btn.innerHTML = originalText; lucide.createIcons(); } }
         }
 
-        // PUSH to Cloud
         async function pushData(silent = false) {
             if (!state.auth.token) return;
             try {
-                // Remove files from payload to save bandwidth/KV space
                 const tasksToSync = state.tasks.map(t => { const copy = {...t}; delete copy.files; return copy; });
-                
                 const response = await fetch(`${API_URL}/api/sync`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.auth.token}` },
                     body: JSON.stringify({ lists: state.lists, tasks: tasksToSync, settings: state.settings, stats: state.stats })
@@ -1946,7 +2074,6 @@
             } catch (err) { console.error("Auto-sync failed", err); } 
         }
 
-        // Local fallback checker for task due notifications if push isn't configured
         function checkNotifications() {
             if (!("Notification" in window) || Notification.permission !== "granted") return;
             const now = new Date();
@@ -1968,7 +2095,6 @@
         if(els.fabAddTask) els.fabAddTask.addEventListener('click', openNewTaskScreen);
         if(els.closeNewTaskBtn) els.closeNewTaskBtn.addEventListener('click', closeNewTaskScreen);
         if(els.newTaskForm) els.newTaskForm.addEventListener('submit', submitNewTask);
-        if(els.toggleCompletedBtn) els.toggleCompletedBtn.addEventListener('click', toggleCompletedSection);
         if(els.editTaskForm) els.editTaskForm.addEventListener('submit', saveTask);
         if(els.closeEditModalBtn) els.closeEditModalBtn.addEventListener('click', closeEditModal);
         if(els.cancelEditBtn) els.cancelEditBtn.addEventListener('click', closeEditModal);
@@ -1996,6 +2122,14 @@
             if (els.toolsDropdown && !els.toolsDropdown.classList.contains('hidden') && !e.target.closest('#tools-dropdown') && !e.target.closest('#fab-tools')) { els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex'); }
             if (els.contextMenu && els.contextMenu.style.display === 'flex' && !e.target.closest('#list-context-menu') && !e.target.closest('.list-item')) { closeListMenu(); }
         });
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW setup successful'))
+                    .catch(err => console.error('SW setup failed', err));
+            });
+        }
 
         // App Boot
         loadLocalState();
