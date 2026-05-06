@@ -12,7 +12,7 @@ Step 2: Get Your VAPID Keys (Safely in the browser)
 
 Since you don't have a terminal, you can use a safe online generator made by the Google Chrome team.
 
-Go to this website: Web Push Codelab Key Generator
+Go to this website: Web Push Codelab Key Generator https://web-push-codelab.glitch.me/  
 
 You will instantly see a Public Key and a Private Key. Keep this page open!
 
