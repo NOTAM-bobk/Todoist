@@ -1,0 +1,8 @@
+{
+  "name": "neo-tasks",
+  "version": "1.0.0",
+  "description": "Task manager with web push notifications",
+  "dependencies": {
+    "web-push": "^3.6.6"
+  }
+}
