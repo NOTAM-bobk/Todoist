@@ -72,11 +72,6 @@
             --accent-rgb: 217, 119, 87;
         }
 
-        /* Accent Colors Options */
-        body.accent-blue { --accent: #2563eb; --accent-rgb: 37, 99, 235; }
-        body.accent-emerald { --accent: #059669; --accent-rgb: 5, 150, 105; }
-        body.accent-rose { --accent: #e11d48; --accent-rgb: 225, 29, 72; }
-
         body {
             font-family: var(--font-family), sans-serif;
             background-color: var(--white);
@@ -265,13 +260,13 @@
             display: none !important;
         }
 
-        /* Top Bar List Item (Auto-shaping Pill) */
+        /* Top Bar List Item (Auto-shaping Pill with absolute side-by-side alignment) */
         .list-item {
             cursor: pointer;
             padding: 0.5rem 1rem;
             border-radius: 9999px;
             font-weight: 500;
-            display: flex;
+            display: inline-flex;
             flex-direction: row;
             flex-wrap: nowrap;
             justify-content: center;
@@ -280,7 +275,7 @@
             background-color: transparent;
             border: var(--border-width) solid transparent;
             transition: all 0.2s ease;
-            width: max-content; /* Auto shape around text */
+            width: max-content; 
             color: rgba(var(--black-rgb), 0.5);
             white-space: nowrap;
         }
@@ -422,6 +417,7 @@
             border-radius: 9999px;
             transition: all 0.2s ease;
             color: var(--black);
+            cursor: pointer;
         }
         .theme-claude .glass-oval { border-color: rgba(var(--black-rgb), 0.1); }
         .glass-oval:hover { background: rgba(var(--black-rgb), 0.1); }
@@ -470,7 +466,7 @@
             <!-- Lists injected via JS -->
         </ul>
         <div class="w-px h-5 bg-[rgba(var(--black-rgb),0.2)] mx-4 shrink-0"></div>
-        <button id="add-list-btn" class="glass-oval shrink-0 p-2 text-sm font-bold flex items-center justify-center w-8 h-8" title="New List">
+        <button id="add-list-btn" class="glass-oval shrink-0 p-2 text-sm font-bold flex items-center justify-center w-8 h-8" title="New List" onclick="openListModal()">
             <i data-lucide="plus" class="w-4 h-4"></i>
         </button>
     </nav>
@@ -500,7 +496,7 @@
         </button>
 
         <!-- Main Add Task FAB (Center) - Swipe up to open -->
-        <button id="fab-add-task" class="neo-btn primary w-16 h-16 rounded-full flex items-center justify-center pointer-events-auto border-[var(--border-width)] hover:scale-105 active:scale-95 shadow-[0_4px_16px_rgba(var(--accent-rgb),0.4)]" style="transform-origin: center;" title="Add Task (Cmd/Ctrl+K)">
+        <button id="fab-add-task" class="neo-btn primary w-16 h-16 rounded-full flex items-center justify-center pointer-events-auto border-[var(--border-width)] hover:scale-105 active:scale-95 shadow-[0_4px_16px_rgba(var(--accent-rgb),0.4)]" style="transform-origin: center;" title="Add Task (Cmd/Ctrl+K)" onclick="openNewTaskScreen()">
             <i data-lucide="plus" class="w-8 h-8"></i>
         </button>
 
@@ -545,12 +541,12 @@
         <div class="flex items-center justify-between p-6 border-b-2 border-[rgba(var(--black-rgb),0.1)] shrink-0 bg-transparent relative">
             <div class="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1.5 rounded-full bg-[rgba(var(--black-rgb),0.2)]"></div>
             <h2 class="text-3xl font-black uppercase tracking-tight font-fun mt-2">Create Task</h2>
-            <button id="close-new-task-btn" class="neo-btn p-2 bg-transparent mt-2">
+            <button id="close-new-task-btn" class="neo-btn p-2 bg-transparent mt-2" onclick="closeNewTaskScreen()">
                 <i data-lucide="chevron-down" class="w-6 h-6"></i>
             </button>
         </div>
         
-        <form id="new-task-form" class="flex-1 flex flex-col overflow-hidden bg-transparent max-w-4xl w-full mx-auto">
+        <form id="new-task-form" class="flex-1 flex flex-col overflow-hidden bg-transparent max-w-4xl w-full mx-auto" onsubmit="submitNewTask(event)">
             <div class="p-6 space-y-6 overflow-y-auto flex-1 pb-12">
                 
                 <!-- Task Identity Section -->
@@ -646,12 +642,12 @@
         <div class="flex items-center justify-between p-6 border-b-2 border-[rgba(var(--black-rgb),0.1)] shrink-0 bg-transparent relative">
             <div class="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1.5 rounded-full bg-[rgba(var(--black-rgb),0.2)]"></div>
             <h2 class="text-3xl font-black uppercase tracking-tight font-fun mt-2">Edit Task</h2>
-            <button id="close-edit-modal-btn" class="neo-btn p-2 bg-transparent mt-2">
+            <button id="close-edit-modal-btn" class="neo-btn p-2 bg-transparent mt-2" onclick="closeEditModal()">
                 <i data-lucide="chevron-down" class="w-6 h-6"></i>
             </button>
         </div>
         
-        <form id="edit-task-form" class="flex-1 flex flex-col overflow-hidden bg-transparent max-w-4xl w-full mx-auto">
+        <form id="edit-task-form" class="flex-1 flex flex-col overflow-hidden bg-transparent max-w-4xl w-full mx-auto" onsubmit="saveTask(event)">
             <div class="p-6 space-y-6 overflow-y-auto flex-1 pb-12">
                 
                 <div class="neo-border p-5 bg-[rgba(var(--black-rgb),0.02)] rounded-xl space-y-4">
@@ -731,14 +727,14 @@
             </div>
 
             <div class="flex justify-between items-center p-6 shrink-0 bg-[var(--white)] shadow-[0_-10px_20px_rgba(0,0,0,0.05)] rounded-t-2xl">
-                <button type="button" id="delete-task-btn" class="neo-btn px-4 py-4 text-red-500 border-red-500 bg-transparent">
+                <button type="button" id="delete-task-btn" class="neo-btn px-4 py-4 text-red-500 border-red-500 bg-transparent" onclick="deleteTask()">
                     <i data-lucide="trash-2" class="w-5 h-5"></i>
                 </button>
                 <div class="flex flex-1 ml-4 gap-2">
-                    <button type="button" id="cancel-edit-btn" class="neo-btn flex-1 py-4 text-lg bg-transparent">
+                    <button type="button" id="cancel-edit-btn" class="neo-btn flex-1 py-4 text-lg bg-transparent" onclick="closeEditModal()">
                         Cancel
                     </button>
-                    <button type="button" class="neo-btn primary flex-1 py-4 text-lg hover:opacity-90" onclick="document.getElementById('edit-task-form').requestSubmit()">
+                    <button type="submit" class="neo-btn primary flex-1 py-4 text-lg hover:opacity-90">
                         Save
                     </button>
                 </div>
@@ -748,18 +744,18 @@
 
     <!-- Context Menu for Lists -->
     <div id="list-context-menu" class="fixed hidden liquid-glass flex-col z-[100] w-36 py-2">
-        <button id="ctx-rename-btn" class="px-4 py-2 font-bold hover:bg-[rgba(var(--black-rgb),0.1)] text-left text-sm transition-colors">Rename</button>
-        <button id="ctx-delete-btn" class="px-4 py-2 font-bold text-red-500 hover:bg-[rgba(var(--black-rgb),0.1)] hover:text-red-700 text-left text-sm transition-colors">Delete</button>
+        <button id="ctx-rename-btn" class="px-4 py-2 font-bold hover:bg-[rgba(var(--black-rgb),0.1)] text-left text-sm transition-colors" onclick="openRenameModal()">Rename</button>
+        <button id="ctx-delete-btn" class="px-4 py-2 font-bold text-red-500 hover:bg-[rgba(var(--black-rgb),0.1)] hover:text-red-700 text-left text-sm transition-colors" onclick="deleteCurrentList()">Delete</button>
     </div>
 
     <!-- Rename List Modal -->
     <div id="rename-modal" class="fixed inset-0 z-50 modal-overlay flex items-center justify-center p-4">
         <div class="liquid-glass w-full max-w-sm p-6 relative modal-content">
             <h3 class="text-xl font-black uppercase mb-4 border-b-2 border-[rgba(var(--black-rgb),0.1)] pb-2">Rename List</h3>
-            <form id="rename-list-form" class="space-y-4">
+            <form id="rename-list-form" class="space-y-4" onsubmit="saveRenameList(event)">
                 <input type="text" id="rename-list-input" class="neo-input w-full bg-transparent" required autocomplete="off">
                 <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" id="cancel-rename-btn" class="neo-btn px-4 py-2 bg-transparent">Cancel</button>
+                    <button type="button" id="cancel-rename-btn" class="neo-btn px-4 py-2 bg-transparent" onclick="closeRenameModal()">Cancel</button>
                     <button type="submit" class="neo-btn primary px-6 py-2">Save</button>
                 </div>
             </form>
@@ -795,22 +791,24 @@
                 <h3 class="text-lg font-black uppercase mb-4 border-b border-[rgba(var(--black-rgb),0.1)] pb-2 flex items-center gap-2"><i data-lucide="palette"></i> Visual Upgrades</h3>
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-bold uppercase text-xs opacity-70 mb-2">Theme</label>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-2">Theme Base</label>
                         <select id="setting-theme" class="neo-input w-full cursor-pointer appearance-none rounded-none bg-transparent font-bold" onchange="updateSettings('theme', this.value)">
                             <option value="claude">Claude's Style (Default)</option>
                             <option value="light">Light Brutalism</option>
                             <option value="dark">Dark Brutalism</option>
                         </select>
                     </div>
+                    
                     <div>
-                        <label class="block font-bold uppercase text-xs opacity-70 mb-2">Accent Color</label>
-                        <select id="setting-accent" class="neo-input w-full cursor-pointer appearance-none rounded-none bg-transparent font-bold" onchange="updateSettings('accent', this.value)">
-                            <option value="default">Default</option>
-                            <option value="blue">Ocean Blue</option>
-                            <option value="emerald">Emerald Green</option>
-                            <option value="rose">Rose Red</option>
-                        </select>
+                        <label class="block font-bold uppercase text-xs opacity-70 mb-2">Custom Accent Color</label>
+                        <div class="flex items-center gap-3">
+                            <input type="color" id="setting-custom-color" class="w-12 h-12 p-1 rounded cursor-pointer neo-border bg-transparent" onchange="updateSettings('customAccent', this.value)">
+                            <button class="neo-btn px-4 py-2 text-sm bg-transparent" onclick="updateSettings('customAccent', null); document.getElementById('setting-custom-color').value='#d97757';">
+                                Reset Default
+                            </button>
+                        </div>
                     </div>
+                    
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block font-bold uppercase text-xs opacity-70 mb-2">Font</label>
@@ -896,7 +894,7 @@
             </div>
 
             <div class="text-center pt-4 pb-4 opacity-50 text-xs font-bold uppercase tracking-widest">
-                Neo Tasks v3.1.5 (Build 171)
+                Neo Tasks v3.2.0 (Build 185)
             </div>
         </div>
     </div>
@@ -905,10 +903,10 @@
     <div id="list-modal" class="fixed inset-0 z-50 modal-overlay flex items-center justify-center p-4">
         <div class="liquid-glass w-full max-w-sm p-6 relative modal-content">
             <h3 class="text-xl font-black uppercase mb-4 border-b-2 border-[rgba(var(--black-rgb),0.1)] pb-2">Create New List</h3>
-            <form id="add-list-form" class="space-y-4">
+            <form id="add-list-form" class="space-y-4" onsubmit="addList(event)">
                 <input type="text" id="new-list-input" class="neo-input w-full bg-transparent" placeholder="List Name" required autocomplete="off">
                 <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" id="cancel-list-btn" class="neo-btn px-4 py-2 bg-transparent">Cancel</button>
+                    <button type="button" id="cancel-list-btn" class="neo-btn px-4 py-2 bg-transparent" onclick="document.getElementById('list-modal').classList.remove('open')">Cancel</button>
                     <button type="submit" class="neo-btn primary px-6 py-2">Create</button>
                 </div>
             </form>
@@ -956,6 +954,15 @@
         window.addEventListener('click', initAudio, { once: true });
         window.addEventListener('touchstart', initAudio, { once: true });
 
+        function hexToRgb(hex) {
+            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
         // --- State Management & Storage ---
         const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
         const API_URL = 'https://neo-tasks-backend.sawyerbobk563.workers.dev'; 
@@ -974,7 +981,7 @@
             calendarSelectedDate: new Date().toISOString().split('T')[0],
             tempSubtasks: [],
             tempFiles: [],
-            settings: { theme: 'claude', accent: 'default', font: "'Space Grotesk'", density: 'comfortable', notifications: false, showViewNav: true },
+            settings: { theme: 'claude', customAccent: null, font: "'Space Grotesk'", density: 'comfortable', notifications: false, showViewNav: true },
             stats: { created: 1, completed: 0 },
             auth: { username: null, token: null }
         };
@@ -1041,6 +1048,7 @@
 
         function showToast(message) {
             const container = document.getElementById('toast-container');
+            if(!container) return;
             const toast = document.createElement('div');
             toast.className = 'toast-notification';
             toast.innerHTML = `<i data-lucide="info" class="w-4 h-4"></i> <span>${escapeHTML(message)}</span>`;
@@ -1057,8 +1065,6 @@
             
             fabAddTask: document.getElementById('fab-add-task'),
             newTaskScreen: document.getElementById('new-task-screen'),
-            closeNewTaskBtn: document.getElementById('close-new-task-btn'),
-            newTaskForm: document.getElementById('new-task-form'),
             newTaskTitle: document.getElementById('new-task-title'),
             newTaskDetails: document.getElementById('new-task-details'),
             newTaskList: document.getElementById('new-task-list'),
@@ -1070,7 +1076,6 @@
             newTaskFile: document.getElementById('new-task-file'),
             
             editModal: document.getElementById('edit-modal'),
-            editTaskForm: document.getElementById('edit-task-form'),
             editTaskTitle: document.getElementById('edit-task-title'),
             editTaskDetails: document.getElementById('edit-task-details'),
             editTaskList: document.getElementById('edit-task-list'),
@@ -1080,19 +1085,13 @@
             editTaskNotify: document.getElementById('edit-task-notify'),
             editTaskLocation: document.getElementById('edit-task-location'),
             editTaskFile: document.getElementById('edit-task-file'),
-            closeEditModalBtn: document.getElementById('close-edit-modal-btn'),
-            cancelEditBtn: document.getElementById('cancel-edit-btn'),
-            deleteTaskBtn: document.getElementById('delete-task-btn'),
 
-            addListBtn: document.getElementById('add-list-btn'),
+            listModal: document.getElementById('list-modal'),
+            newListInput: document.getElementById('new-list-input'),
             
             contextMenu: document.getElementById('list-context-menu'),
-            ctxRenameBtn: document.getElementById('ctx-rename-btn'),
-            ctxDeleteBtn: document.getElementById('ctx-delete-btn'),
             renameModal: document.getElementById('rename-modal'),
-            renameListForm: document.getElementById('rename-list-form'),
             renameListInput: document.getElementById('rename-list-input'),
-            cancelRenameBtn: document.getElementById('cancel-rename-btn'),
             
             toolsDropdown: document.getElementById('tools-dropdown'),
             settingsScreen: document.getElementById('settings-screen'),
@@ -1103,6 +1102,7 @@
         // --- Core Render Functions ---
 
         function triggerViewAnimation() {
+            if(!els.mainViewArea) return;
             els.mainViewArea.classList.remove('view-enter');
             void els.mainViewArea.offsetWidth;
             els.mainViewArea.classList.add('view-enter');
@@ -1130,6 +1130,7 @@
         }
 
         function renderLists() {
+            if(!els.listsContainer) return;
             const importantActiveCount = state.tasks.filter(t => t.important && !t.completed).length;
             const importantHtml = `
                 <li class="list-item ${'important' === state.activeListId ? 'active' : ''}" 
@@ -1137,7 +1138,7 @@
                     <span class="truncate font-fun text-lg text-center flex-1">
                         <i data-lucide="star" class="w-5 h-5 inline-block -mt-1 ${'important' === state.activeListId ? 'fill-[var(--accent)] text-[var(--accent)]' : ''}"></i>
                     </span>
-                    <span class="text-xs px-2 py-0.5 rounded-full border ${'important' === state.activeListId ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-gray-400 text-gray-500'} font-black shrink-0">
+                    <span class="text-xs px-2 py-0.5 rounded-full border ${'important' === state.activeListId ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-gray-400 text-gray-500'} font-black shrink-0 ml-2">
                         ${importantActiveCount}
                     </span>
                 </li>
@@ -1149,8 +1150,8 @@
                     <li class="list-item ${list.id === state.activeListId ? 'active' : ''}" 
                          onclick="setActiveList('${list.id}')"
                          oncontextmenu="openListMenu(event, '${list.id}')">
-                        <span class="truncate font-fun text-lg text-center flex-1">${escapeHTML(list.name)}</span>
-                        <span class="text-xs px-2 py-0.5 rounded-full border ${list.id === state.activeListId ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-gray-400 text-gray-500'} font-black shrink-0 ml-2">
+                        <span class="font-fun text-lg max-w-[200px] truncate overflow-hidden inline-block align-middle">${escapeHTML(list.name)}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full border ${list.id === state.activeListId ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-gray-400 text-gray-500'} font-black shrink-0 ml-2 inline-flex items-center justify-center">
                             ${activeCount}
                         </span>
                     </li>
@@ -1161,6 +1162,7 @@
         }
 
         function renderViewNav() {
+            if(!els.viewNavContainer) return;
             if (state.settings.showViewNav === false) {
                 els.viewNavContainer.style.display = 'none';
                 return;
@@ -1198,6 +1200,7 @@
         }
 
         function renderMainArea() {
+            if(!els.mainViewArea) return;
             if (state.currentView === 'home') {
                 let currentTasks = state.activeListId === 'important' ? state.tasks.filter(t => t.important) : state.tasks.filter(t => t.listId === state.activeListId);
                 currentTasks = sortTasksArray(currentTasks);
@@ -1575,9 +1578,15 @@
                 els.newListInput.value = '';
                 playSound('add');
                 saveStateAndRender();
-                els.listModal.classList.remove('open');
+                if(els.listModal) els.listModal.classList.remove('open');
                 showToast(`List "${listName}" created.`);
             }
+        }
+
+        function openListModal() {
+            if(els.newListInput) els.newListInput.value = '';
+            if(els.listModal) els.listModal.classList.add('open');
+            setTimeout(() => { if(els.newListInput) els.newListInput.focus(); }, 100);
         }
 
         function saveRenameList(e) {
@@ -1612,7 +1621,7 @@
                 state.tasks = state.tasks.filter(t => !t.completed);
                 playSound('delete');
                 saveStateAndRender();
-                els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex');
+                if(els.toolsDropdown) { els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex'); }
                 showToast("Completed tasks cleared.");
             }
         }
@@ -1621,7 +1630,7 @@
             state.tasks.forEach(t => t.completed = true);
             playSound('complete');
             saveStateAndRender();
-            els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex');
+            if(els.toolsDropdown) { els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex'); }
             showToast("All tasks marked done.");
             confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 }, zIndex: 1000 });
         }
@@ -1631,7 +1640,7 @@
                 state.tasks = [];
                 playSound('delete');
                 saveStateAndRender();
-                els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex');
+                if(els.toolsDropdown) { els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex'); }
                 showToast("All tasks deleted.");
             }
         }
@@ -1647,14 +1656,14 @@
             document.body.appendChild(downloadAnchorNode); 
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
-            els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex');
+            if(els.toolsDropdown) { els.toolsDropdown.classList.add('hidden'); els.toolsDropdown.classList.remove('flex'); }
         }
 
         // --- UI Interactions ---
 
         function autoFetchLocation(type) {
             const input = document.getElementById(`${type}-task-location`);
-            if (navigator.geolocation) {
+            if (navigator.geolocation && input) {
                 input.placeholder = "Fetching location...";
                 navigator.geolocation.getCurrentPosition(async (pos) => {
                     const { latitude, longitude } = pos.coords;
@@ -1692,7 +1701,7 @@
             
             if(els.newTaskScreen) els.newTaskScreen.classList.add('open');
             
-            // Critical for iOS Autofocus: Must be completely synchronous with click event
+            // Synchronous Focus
             if(els.newTaskTitle) {
                 els.newTaskTitle.focus(); 
             }
@@ -1805,7 +1814,6 @@
 
                 if(els.editModal) els.editModal.classList.add('open');
                 
-                // Synchronous Focus
                 if(els.editTaskTitle) {
                     els.editTaskTitle.focus();
                 }
@@ -1855,6 +1863,12 @@
             const sf = document.getElementById('setting-font'); if(sf) sf.value = state.settings.font;
             const sd = document.getElementById('setting-density'); if(sd) sd.value = state.settings.density || 'comfortable';
             
+            const colorPicker = document.getElementById('setting-custom-color');
+            if(colorPicker) {
+                if(state.settings.customAccent) colorPicker.value = state.settings.customAccent;
+                else colorPicker.value = state.settings.theme === 'claude' ? '#d97757' : '#000000';
+            }
+
             const checkbox = document.querySelector('#setting-notifications i');
             if(checkbox) {
                 if (state.settings.notifications) checkbox.classList.remove('hidden'); 
@@ -1937,6 +1951,17 @@
             document.body.classList.remove('accent-blue', 'accent-emerald', 'accent-rose');
             if (state.settings.accent && state.settings.accent !== 'default') {
                 document.body.classList.add(`accent-${state.settings.accent}`);
+            }
+
+            if (state.settings.customAccent) {
+                const rgb = hexToRgb(state.settings.customAccent);
+                if (rgb) {
+                    document.documentElement.style.setProperty('--accent', state.settings.customAccent);
+                    document.documentElement.style.setProperty('--accent-rgb', `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+                }
+            } else {
+                document.documentElement.style.removeProperty('--accent');
+                document.documentElement.style.removeProperty('--accent-rgb');
             }
 
             document.body.classList.remove('density-compact');
@@ -2100,13 +2125,6 @@
         if(els.cancelEditBtn) els.cancelEditBtn.addEventListener('click', closeEditModal);
         if(els.deleteTaskBtn) els.deleteTaskBtn.addEventListener('click', deleteTask);
         
-        if(els.addListBtn) {
-            els.addListBtn.addEventListener('click', () => { 
-                if(els.newListInput) els.newListInput.value = ''; 
-                if(els.listModal) els.listModal.classList.add('open'); 
-                setTimeout(() => { if(els.newListInput) els.newListInput.focus(); }, 100); 
-            });
-        }
         if(els.addListForm) els.addListForm.addEventListener('submit', addList);
         if(els.cancelListBtn) els.cancelListBtn.addEventListener('click', () => { if(els.listModal) els.listModal.classList.remove('open'); });
         
