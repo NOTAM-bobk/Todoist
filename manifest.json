@@ -1,1 +1,17 @@
-
+{
+  "name": "Neo Tasks",
+  "short_name": "Tasks",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "description": "A smart, fast, offline-capable task manager.",
+  "icons": [
+    {
+      "src": "image_bd669a.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
