@@ -1,4 +1,4 @@
-# ✅ Neo Tasks
+# ✅ G Tasks
 
 [![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?logo=vercel)](https://vercel.com)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
