@@ -164,6 +164,39 @@ export default {
         return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
       }
 
+      // --- VOICE MEMOS SYNC ---
+      if (path === '/api/voice-memos-sync' && request.method === 'GET') {
+        const authHeader = request.headers.get('Authorization');
+        if (!authHeader || !authHeader.startsWith('Bearer ')) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+        
+        const token = authHeader.split(' ')[1];
+        const username = await env.NEO_TASKS_KV.get(`token:${token}`);
+        if (!username) return new Response(JSON.stringify({ error: "Invalid token" }), { status: 401, headers: corsHeaders });
+
+        const dataStr = await env.NEO_TASKS_KV.get(`voice:${username}`);
+        const serverData = dataStr ? JSON.parse(dataStr) : { memos: [] };
+
+        return new Response(JSON.stringify({ success: true, serverData }), { headers: corsHeaders });
+      }
+
+      if (path === '/api/voice-memos-sync' && request.method === 'POST') {
+        const authHeader = request.headers.get('Authorization');
+        if (!authHeader || !authHeader.startsWith('Bearer ')) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+        
+        const token = authHeader.split(' ')[1];
+        const username = await env.NEO_TASKS_KV.get(`token:${token}`);
+        if (!username) return new Response(JSON.stringify({ error: "Invalid token" }), { status: 401, headers: corsHeaders });
+
+        const payload = await request.json();
+        
+        await env.NEO_TASKS_KV.put(`voice:${username}`, JSON.stringify({
+            memos: payload.memos,
+            lastSynced: Date.now()
+        }));
+
+        return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+      }
+
       return new Response(JSON.stringify({ error: "Not found" }), { status: 404, headers: corsHeaders });
 
     } catch (err) {
