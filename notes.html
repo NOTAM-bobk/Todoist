@@ -8,12 +8,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
         :root {
             --paper: #fdf8ed;
             --ink: #2f2419;
-            --accent: #d97757;
+            --accent: #b9c48b; /* Notes Green Accent */
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -27,7 +28,6 @@
             display: flex;
         }
 
-        /* Subtle paper texture */
         body::before {
             content: ""; position: fixed; inset: 0;
             background-image: radial-gradient(#e0d6c0 1px, transparent 1px);
@@ -50,7 +50,7 @@
             border-radius: 12px 6px 14px 8px; font-weight: bold;
             cursor: pointer; transition: all 0.2s ease;
             box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.05);
-            display: inline-flex; align-items: center; gap: 0.5rem;
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
             padding: 0.5rem 1rem;
         }
         .sketch-btn:hover { transform: translateY(-2px); box-shadow: 3px 6px 0 rgba(0, 0, 0, 0.08); }
@@ -63,58 +63,152 @@
         .note-item:hover { background: rgba(0,0,0,0.02); }
         .note-item.active { background: rgba(0,0,0,0.05); font-weight: bold; }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(0,0,0, 0.2); border-radius: 4px; }
         
         #drawing-canvas {
-            touch-action: none; /* Prevent scroll while drawing on mobile */
+            touch-action: none; 
             cursor: crosshair;
+        }
+
+        /* --- Handdrawn Side Menu Styles --- */
+        .hand-menu {
+            position: fixed; left: 0; top: 50%; transform: translateY(-50%);
+            width: 80px; z-index: 90; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; pointer-events: none;
+        }
+        .menu-toggle {
+            position: relative; width: 72px; height: 72px;
+            background: #fff9ef; border-radius: 40px 12px 40px 12px; border: 3px solid #3a2c1f;
+            box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.08), inset 0 1px 4px rgba(255, 255, 200, 0.8);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s ease; z-index: 10; pointer-events: auto;
+        }
+        .menu-toggle:hover { transform: scale(0.97); background: #fff3e0; box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.08); }
+        .burger-icon { display: flex; flex-direction: column; gap: 8px; width: 32px; }
+        .burger-icon span { display: block; height: 4px; background: #4e3b28; border-radius: 20px; transition: all 0.25s; }
+        .burger-icon span:first-child { width: 28px; }
+        .burger-icon span:nth-child(2) { width: 32px; }
+        .burger-icon span:last-child { width: 24px; }
+        
+        #menu-checkbox:checked + .menu-toggle .burger-icon span:first-child { transform: rotate(40deg) translate(6px, 8px); width: 28px; }
+        #menu-checkbox:checked + .menu-toggle .burger-icon span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+        #menu-checkbox:checked + .menu-toggle .burger-icon span:last-child { transform: rotate(-40deg) translate(5px, -8px); width: 28px; }
+
+        .menu-items-container {
+            position: absolute; left: 86px; top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column; gap: 18px; pointer-events: none;
+        }
+        .menu-items-container::before {
+            content: ''; position: absolute; top: -30px; bottom: -30px; left: -30px; right: -50px;
+            background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(16px);
+            border-radius: 40px; z-index: -1; opacity: 0; transition: opacity 0.38s; pointer-events: none;
+        }
+        #menu-checkbox:checked ~ .menu-items-container::before { opacity: 1; }
+
+        .menu-item {
+            display: flex; align-items: center; gap: 14px; background: #fffaf2;
+            padding: 8px 18px 8px 16px; border-radius: 60px 20px 60px 20px;
+            border: 2.5px solid #3f2d1b; box-shadow: 5px 6px 0 rgba(0, 0, 0, 0.06);
+            text-decoration: none; font-weight: 600; font-size: 1.4rem; color: #2f2419;
+            transition: transform 0.3s ease, opacity 0.2s ease, visibility 0s linear 0.25s;
+            white-space: nowrap; transform: translateX(-20px); opacity: 0; visibility: hidden; pointer-events: none;
+        }
+        .menu-item i { font-size: 1.8rem; width: 36px; text-align: center; color: #5c3f28; transition: transform 0.2s; }
+        .item-text { font-size: 1.35rem; font-weight: 500; padding-right: 6px; }
+
+        .menu-item.tasks { background: #fef7e0; border-left: 6px solid #e3b87c; }
+        .menu-item.notes { background: #fef2e6; border-left: 6px solid #b9c48b; }
+        .menu-item.reminders { background: #fcefec; border-left: 6px solid #f3b3a2; }
+        .menu-item.voice-memo { background: #eef5fc; border-left: 6px solid #8fb9d4; }
+
+        .menu-item:hover { transform: translateX(6px) scale(1.02); background: #fffcf5; box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.05); }
+
+        #menu-checkbox:checked ~ .menu-items-container .menu-item {
+            transform: translateX(0); opacity: 1; visibility: visible; pointer-events: auto;
+            transition: transform 0.38s cubic-bezier(0.2, 0.9, 0.4, 1.1), opacity 0.3s ease, visibility 0s linear 0s;
+        }
+        #menu-checkbox:checked ~ .menu-items-container .menu-item:nth-child(1) { transition-delay: 0.02s; }
+        #menu-checkbox:checked ~ .menu-items-container .menu-item:nth-child(2) { transition-delay: 0.08s; }
+        #menu-checkbox:checked ~ .menu-items-container .menu-item:nth-child(3) { transition-delay: 0.14s; }
+        #menu-checkbox:checked ~ .menu-items-container .menu-item:nth-child(4) { transition-delay: 0.2s; }
+
+        @media (max-width: 640px) {
+            .menu-item .item-text { font-size: 1.1rem; }
+            .menu-item i { font-size: 1.5rem; width: 30px; }
+            .menu-item { padding: 6px 12px 6px 12px; gap: 10px; }
+            .menu-items-container { left: 78px; gap: 14px; }
+            .menu-toggle { width: 64px; height: 64px; }
         }
     </style>
 </head>
 <body>
 
+    <!-- Handdrawn Side Nav Menu -->
+    <div class="hand-menu">
+        <input type="checkbox" id="menu-checkbox" class="hidden">
+        <label for="menu-checkbox" class="menu-toggle">
+            <div class="burger-icon">
+                <span></span><span></span><span></span>
+            </div>
+        </label>
+        <div class="menu-items-container">
+            <a href="index.html" class="menu-item tasks">
+                <i class="fas fa-check-circle"></i>
+                <span class="item-text">Tasks</span>
+            </a>
+            <a href="notes.html" class="menu-item notes">
+                <i class="fas fa-pen-fancy"></i>
+                <span class="item-text">Notes</span>
+            </a>
+            <a href="reminders.html" class="menu-item reminders">
+                <i class="fas fa-bell"></i>
+                <span class="item-text">Reminders</span>
+            </a>
+            <a href="voice-memos.html" class="menu-item voice-memo">
+                <i class="fas fa-microphone-alt"></i>
+                <span class="item-text">Voice Memo</span>
+            </a>
+        </div>
+    </div>
+
     <!-- Sidebar: Notes List -->
-    <aside class="w-64 sm:w-80 border-r-2 border-[var(--ink)] flex flex-col bg-[rgba(255,255,255,0.3)] backdrop-blur-sm z-10 shrink-0">
-        <div class="p-6 border-b-2 border-[var(--ink)] flex justify-between items-center">
-            <h1 class="text-2xl font-bold">My Notes</h1>
+    <aside class="w-72 sm:w-80 border-r-2 border-[var(--ink)] flex flex-col bg-[rgba(255,255,255,0.3)] backdrop-blur-sm z-10 shrink-0 pl-20 sm:pl-24">
+        <div class="p-4 sm:p-6 border-b-2 border-[var(--ink)] flex justify-between items-center">
+            <h1 class="text-2xl font-bold flex items-center gap-2"><i class="fas fa-pen-fancy text-[var(--accent)]"></i> Notes</h1>
             <button class="sketch-btn px-3" onclick="createNewNote()" title="New Note"><i data-lucide="plus"></i></button>
         </div>
         <div class="flex-1 overflow-y-auto" id="notes-list">
             <!-- Notes injected via JS -->
-        </div>
-        <div class="p-4 border-t-2 border-[var(--ink)] text-center">
-            <a href="index.html" class="sketch-btn w-full justify-center text-sm"><i data-lucide="arrow-left"></i> Back to Tasks</a>
         </div>
     </aside>
 
     <!-- Main Editor -->
     <main class="flex-1 flex flex-col relative">
         <!-- Editor Header -->
-        <header class="p-6 border-b-2 border-[var(--ink)] flex justify-between items-center gap-4 bg-[rgba(255,255,255,0.3)]">
-            <input type="text" id="note-title" class="sketch-input text-3xl font-bold flex-1" placeholder="Untitled Note" oninput="saveCurrentNote()">
-            <div class="flex gap-3">
-                <button id="draw-mode-btn" class="sketch-btn" onclick="toggleDrawMode()"><i data-lucide="pen-tool"></i> Draw</button>
+        <header class="p-4 sm:p-6 border-b-2 border-[var(--ink)] flex justify-between items-center gap-4 bg-[rgba(255,255,255,0.3)]">
+            <input type="text" id="note-title" class="sketch-input text-xl sm:text-3xl font-bold flex-1" placeholder="Untitled Note" oninput="saveCurrentNote()">
+            <div class="flex gap-2 sm:gap-3">
+                <button id="draw-mode-btn" class="sketch-btn text-sm sm:text-base" onclick="toggleDrawMode()"><i data-lucide="pen-tool"></i> Draw</button>
                 <button class="sketch-btn text-red-600" onclick="deleteCurrentNote()"><i data-lucide="trash-2"></i></button>
             </div>
         </header>
 
-        <!-- Editor Workspace (Stacking Text and Canvas) -->
+        <!-- Editor Workspace -->
         <div class="flex-1 relative overflow-hidden bg-transparent">
             <!-- Text Layer -->
             <textarea id="note-text" class="sketch-input absolute inset-0 p-6 text-xl resize-none leading-relaxed" style="background: repeating-linear-gradient(transparent, transparent 31px, rgba(0,0,0,0.05) 31px, rgba(0,0,0,0.05) 32px);" placeholder="Start typing here..." oninput="saveCurrentNote()"></textarea>
             
-            <!-- Drawing Canvas Layer (Hidden by default) -->
+            <!-- Drawing Canvas Layer -->
             <div id="canvas-container" class="absolute inset-0 z-20 hidden bg-[rgba(253,248,237,0.9)] backdrop-blur-sm flex flex-col">
-                <div class="flex gap-4 p-4 border-b-2 border-dashed border-[var(--ink)] shrink-0 justify-center items-center">
-                    <button class="sketch-btn bg-black text-white" onclick="changeColor('#000000')">Black</button>
-                    <button class="sketch-btn text-[#d97757]" onclick="changeColor('#d97757')">Red</button>
-                    <button class="sketch-btn text-blue-600" onclick="changeColor('#2563eb')">Blue</button>
-                    <div class="w-px h-6 bg-[var(--ink)] opacity-20"></div>
-                    <button class="sketch-btn" onclick="clearCanvas()"><i data-lucide="eraser"></i> Clear</button>
-                    <button class="sketch-btn" onclick="toggleDrawMode()"><i data-lucide="x"></i> Done</button>
+                <div class="flex gap-2 sm:gap-4 p-2 sm:p-4 border-b-2 border-dashed border-[var(--ink)] shrink-0 justify-center items-center flex-wrap">
+                    <button class="sketch-btn bg-black text-white text-xs sm:text-sm" onclick="changeColor('#000000')">Black</button>
+                    <button class="sketch-btn text-[#d97757] text-xs sm:text-sm" onclick="changeColor('#d97757')">Red</button>
+                    <button class="sketch-btn text-blue-600 text-xs sm:text-sm" onclick="changeColor('#2563eb')">Blue</button>
+                    <div class="w-px h-6 bg-[var(--ink)] opacity-20 hidden sm:block"></div>
+                    <button class="sketch-btn text-xs sm:text-sm" onclick="clearCanvas()"><i data-lucide="eraser" class="w-4 h-4"></i> Clear</button>
+                    <button class="sketch-btn text-xs sm:text-sm" onclick="toggleDrawMode()"><i data-lucide="x" class="w-4 h-4"></i> Done</button>
                 </div>
                 <canvas id="drawing-canvas" class="flex-1 w-full"></canvas>
             </div>
@@ -122,14 +216,14 @@
     </main>
 
     <!-- Sync Indicator -->
-    <div id="sync-status" class="fixed bottom-4 right-4 text-xs font-bold opacity-50 flex items-center gap-1 transition-opacity">
+    <div id="sync-status" class="fixed bottom-4 right-4 text-xs font-bold opacity-50 flex items-center gap-1 transition-opacity bg-[var(--paper)] px-3 py-1 rounded-full sketch-border border-[1px] !shadow-none z-50">
         <i data-lucide="cloud-check" class="w-4 h-4"></i> Saved
     </div>
 
     <script>
         // --- State ---
         const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
-        const API_URL = 'https://neo-tasks-backend.sawyerbobk563.workers.dev'; 
+        const API_URL = 'https://neo-tasks-backend-2.sawyerbobk563.workers.dev'; 
 
         let state = {
             notes: [],
@@ -249,7 +343,7 @@
                 note.title = els.title.value;
                 note.content = els.text.value;
                 note.updatedAt = Date.now();
-                renderList(); // Update sidebar instantly
+                renderList(); 
                 debouncedSave();
             }
         }
@@ -275,10 +369,9 @@
             if (isDrawMode) {
                 els.canvasCont.classList.remove('hidden');
                 resizeCanvas();
-                loadActiveNote(); // Redraw image onto correct canvas size
+                loadActiveNote(); 
             } else {
                 els.canvasCont.classList.add('hidden');
-                // Save canvas to state when exiting
                 const note = state.notes.find(n => n.id === state.activeNoteId);
                 if (note) {
                     note.drawingBase64 = els.canvas.toDataURL();
@@ -288,7 +381,6 @@
         }
 
         function resizeCanvas() {
-            // Match container size
             els.canvas.width = els.canvasCont.clientWidth;
             els.canvas.height = els.canvasCont.clientHeight - 70; // Minus toolbar
             ctx.lineCap = 'round';
@@ -309,7 +401,7 @@
                 const {x, y} = getPos(e);
                 ctx.beginPath();
                 ctx.moveTo(x, y);
-                e.preventDefault(); // Stop scrolling
+                if(e.touches) e.preventDefault(); 
             };
 
             const draw = (e) => {
@@ -318,7 +410,7 @@
                 ctx.strokeStyle = currentColor;
                 ctx.lineTo(x, y);
                 ctx.stroke();
-                e.preventDefault();
+                if(e.touches) e.preventDefault();
             };
 
             const stop = () => {
@@ -339,9 +431,7 @@
         }
 
         function changeColor(hex) { currentColor = hex; }
-        function clearCanvas() {
-            ctx.clearRect(0, 0, els.canvas.width, els.canvas.height);
-        }
+        function clearCanvas() { ctx.clearRect(0, 0, els.canvas.width, els.canvas.height); }
 
         // --- Storage & Cloudflare Sync ---
         let syncTimer = null;
@@ -367,12 +457,11 @@
         async function pullNotes() {
             showSyncStatus('syncing');
             try {
-                // To activate, you'll add the /api/notes-sync GET block to your worker.
                 const response = await fetch(`${API_URL}/api/notes-sync`, { method: 'GET', headers: { 'Authorization': `Bearer ${authToken}` }});
                 const data = await response.json();
                 if (data.success && data.serverData && data.serverData.notes.length > 0) {
                     state.notes = data.serverData.notes;
-                    if(!state.notes.find(n => n.id === state.activeNoteId)) state.activeListId = state.notes[0].id;
+                    if(!state.notes.find(n => n.id === state.activeNoteId)) state.activeNoteId = state.notes[0].id;
                     renderList();
                     loadActiveNote();
                     showSyncStatus('saved');
@@ -383,7 +472,6 @@
         async function pushNotes() {
             showSyncStatus('syncing');
             try {
-                // To activate, you'll add the /api/notes-sync POST block to your worker.
                 const response = await fetch(`${API_URL}/api/notes-sync`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
                     body: JSON.stringify({ notes: state.notes })
@@ -393,9 +481,16 @@
             } catch (err) { showSyncStatus('error'); }
         }
 
-        // Start
-        init();
+        // Menus click outside handler
+        document.addEventListener('click', function(event) {
+            const menuContainer = document.querySelector('.hand-menu');
+            const menuCheckbox = document.getElementById('menu-checkbox');
+            if (menuContainer && !menuContainer.contains(event.target) && menuCheckbox.checked) {
+                menuCheckbox.checked = false;
+            }
+        });
 
+        init();
     </script>
 </body>
 </html>
