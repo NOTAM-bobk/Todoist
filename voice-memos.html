@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Voice Memos | Handdrawn</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        :root {
+            --ink: #2f2419;
+            --accent: #8fb9d4; /* Voice Memo Blue Accent */
+            --bg-color: #fdf8ed;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: linear-gradient(145deg, #fdf8ed 0%, #fef4e3 100%);
+            font-family: 'Kalam', cursive;
+            color: var(--ink);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* Subtle paper texture */
+        body::before {
+            content: ""; position: fixed; inset: 0;
+            background-image: radial-gradient(#e0d6c0 1px, transparent 1px);
+            background-size: 24px 24px; opacity: 0.2; pointer-events: none; z-index: -1;
+        }
+
+        .sketch-input {
+            background: rgba(255,255,255,0.4); 
+            border: 2px solid #3f2d1b;
+            border-radius: 12px 6px 14px 8px;
+            color: var(--ink); 
+            width: 100%;
+            padding: 0.75rem 1rem;
+            outline: none;
+            box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        .sketch-input:focus {
+            box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.08);
+            transform: translate(-1px, -1px);
+        }
+
+        .sketch-btn {
+            background: #fffaf2; border: 2px solid #3f2d1b;
+            border-radius: 12px 6px 14px 8px; font-weight: bold;
+            cursor: pointer; transition: all 0.2s ease;
+            box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.05);
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 0.5rem 1rem;
+        }
+        
+        .sketch-btn.recording {
+            background: #ffe5e5;
+            border-color: #e11d48;
+            color: #e11d48;
+            animation: pulse-border 1.5s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(225, 29, 72, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
+        }
+
+        .sketch-btn:hover:not(.recording) { transform: translateY(-2px); box-shadow: 3px 6px 0 rgba(0, 0, 0, 0.08); }
+        .sketch-btn:active { transform: translateY(0); box-shadow: 1px 2px 0 rgba(0, 0, 0, 0.05); }
+
+        .memo-item {
+            padding: 1rem; border-bottom: 2px dashed rgba(63, 45, 27, 0.2);
+            cursor: pointer; transition: background 0.2s;
+            display: flex; flex-direction: column; gap: 0.25rem;
+        }
+        .memo-item:hover { background: rgba(0,0,0,0.02); }
+        .memo-item.active { background: rgba(0,0,0,0.05); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0, 0.2); border-radius: 4px; }
+        
+        /* Audio Player Styling */
+        audio {
+            width: 100%;
+            height: 40px;
+            outline: none;
+            border-radius: 20px;
+        }
+        audio::-webkit-media-controls-panel {
+            background-color: #eef5fc;
+            border: 2px solid var(--ink);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar: Memos List -->
+    <aside class="w-64 sm:w-80 border-r-2 border-[var(--ink)] flex flex-col bg-[rgba(255,255,255,0.3)] backdrop-blur-sm z-10 shrink-0">
+        <div class="p-6 border-b-2 border-[var(--ink)] flex justify-between items-center">
+            <h1 class="text-3xl font-bold flex items-center gap-2"><i class="fas fa-microphone-alt text-[var(--accent)]"></i> Memos</h1>
+        </div>
+        <div class="p-4 border-b-2 border-dashed border-[var(--ink)] text-center">
+            <button id="record-btn" class="sketch-btn w-full justify-center text-lg py-3" onclick="toggleRecording()">
+                <i data-lucide="mic" id="record-icon"></i> <span id="record-text">Start Recording</span>
+            </button>
+            <div id="recording-timer" class="text-red-500 font-bold text-sm mt-2 hidden">00:00</div>
+        </div>
+        <div class="flex-1 overflow-y-auto" id="memos-list">
+            <!-- Memos injected via JS -->
+        </div>
+        <div class="p-4 border-t-2 border-[var(--ink)] text-center">
+            <a href="index.html" class="sketch-btn w-full justify-center text-sm"><i data-lucide="arrow-left"></i> Back to Tasks</a>
+        </div>
+    </aside>
+
+    <!-- Main Editor -->
+    <main class="flex-1 flex flex-col relative p-4 sm:p-8 overflow-y-auto">
+        <div class="max-w-2xl w-full mx-auto space-y-6" id="editor-container" style="display: none;">
+            
+            <div class="flex justify-between items-end border-b-2 border-[var(--ink)] pb-4">
+                <h2 class="text-2xl font-bold">Voice Memo</h2>
+                <button class="sketch-btn text-red-600 px-3 py-1" onclick="deleteCurrentMemo()"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            </div>
+
+            <div class="space-y-6">
+                <div>
+                    <label class="block font-bold text-sm mb-1 opacity-70">Title</label>
+                    <input type="text" id="memo-title" class="sketch-input text-2xl font-bold" placeholder="Meeting Notes..." oninput="saveCurrentTitle()">
+                </div>
+
+                <div class="p-6 bg-[rgba(255,255,255,0.4)] border-2 border-[var(--ink)] rounded-2xl flex flex-col items-center justify-center gap-4">
+                    <div class="w-16 h-16 rounded-full bg-[var(--accent)] text-white flex items-center justify-center border-2 border-[var(--ink)]">
+                        <i data-lucide="headphones" class="w-8 h-8"></i>
+                    </div>
+                    <audio id="audio-player" controls class="mt-4"></audio>
+                </div>
+                
+                <div class="text-center text-xs opacity-50 font-bold" id="memo-date">
+                    Recorded on...
+                </div>
+            </div>
+
+        </div>
+        
+        <div id="empty-state" class="flex-1 flex items-center justify-center opacity-50 font-bold text-xl flex-col gap-4 text-center px-4">
+            <i class="fas fa-microphone-alt text-4xl"></i>
+            <p>Select a memo or tap 'Start Recording' to capture your thoughts.</p>
+        </div>
+    </main>
+
+    <!-- Sync Indicator -->
+    <div id="sync-status" class="fixed bottom-4 right-4 text-xs font-bold opacity-50 flex items-center gap-1 transition-opacity">
+        <i data-lucide="cloud-check" class="w-4 h-4"></i> Saved
+    </div>
+
+    <script>
+        // --- State ---
+        const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
+        const API_URL = 'https://neo-tasks-backend-2.sawyerbobk563.workers.dev'; 
+
+        let state = {
+            memos: [],
+            activeMemoId: null
+        };
+        let authToken = null;
+        
+        // Audio Recording Logic
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let recordTimerInterval;
+        let recordSeconds = 0;
+
+        // --- DOM ---
+        const els = {
+            list: document.getElementById('memos-list'),
+            editor: document.getElementById('editor-container'),
+            empty: document.getElementById('empty-state'),
+            title: document.getElementById('memo-title'),
+            player: document.getElementById('audio-player'),
+            dateDisplay: document.getElementById('memo-date'),
+            recordBtn: document.getElementById('record-btn'),
+            recordIcon: document.getElementById('record-icon'),
+            recordText: document.getElementById('record-text'),
+            recordTimer: document.getElementById('recording-timer'),
+            syncStatus: document.getElementById('sync-status')
+        };
+
+        // --- App Boot ---
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i=0;i < ca.length;i++) {
+                let c = ca[i];
+                while (c.charAt(0)==' ') c = c.substring(1,c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+            }
+            return null;
+        }
+
+        function init() {
+            lucide.createIcons();
+            authToken = getCookie('auth_token');
+            
+            // Load local
+            const saved = localStorage.getItem('neo-memos-state');
+            if (saved) {
+                state = JSON.parse(saved);
+            }
+
+            if (state.memos.length > 0) {
+                if(!state.activeMemoId) state.activeMemoId = state.memos[0].id;
+                renderList();
+                loadActiveMemo();
+            } else {
+                renderList();
+            }
+
+            // Pull cloud data
+            if(authToken) pullMemos();
+        }
+
+        // --- Recording Logic ---
+        async function toggleRecording() {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        }
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.addEventListener("dataavailable", event => {
+                    audioChunks.push(event.data);
+                });
+
+                mediaRecorder.addEventListener("stop", async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/mp4' }); // or webm/ogg
+                    const base64Audio = await blobToBase64(audioBlob);
+                    saveNewMemo(base64Audio);
+                    
+                    // Stop all tracks to release microphone
+                    stream.getTracks().forEach(track => track.stop());
+                });
+
+                mediaRecorder.start();
+                isRecording = true;
+                
+                // UI Updates
+                els.recordBtn.classList.add('recording');
+                els.recordIcon.setAttribute('data-lucide', 'square');
+                els.recordText.innerText = "Stop Recording";
+                els.recordTimer.classList.remove('hidden');
+                lucide.createIcons();
+                
+                recordSeconds = 0;
+                els.recordTimer.innerText = "00:00";
+                recordTimerInterval = setInterval(() => {
+                    recordSeconds++;
+                    const m = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
+                    const s = String(recordSeconds % 60).padStart(2, '0');
+                    els.recordTimer.innerText = `${m}:${s}`;
+                }, 1000);
+
+            } catch (err) {
+                alert("Please enable microphone permissions to record voice memos.");
+                console.error("Mic error", err);
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop();
+            }
+            isRecording = false;
+            
+            // UI Updates
+            els.recordBtn.classList.remove('recording');
+            els.recordIcon.setAttribute('data-lucide', 'mic');
+            els.recordText.innerText = "Start Recording";
+            els.recordTimer.classList.add('hidden');
+            clearInterval(recordTimerInterval);
+            lucide.createIcons();
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, _) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        function saveNewMemo(base64Data) {
+            const now = Date.now();
+            const newMemo = {
+                id: generateId(),
+                title: `Voice Memo ${state.memos.length + 1}`,
+                audioData: base64Data,
+                createdAt: now
+            };
+            
+            state.memos.unshift(newMemo);
+            state.activeMemoId = newMemo.id;
+            
+            renderList();
+            loadActiveMemo();
+            els.title.focus();
+            els.title.select();
+            
+            debouncedSave();
+        }
+
+        // --- Core UI Logic ---
+
+        function renderList() {
+            els.list.innerHTML = state.memos.sort((a,b) => b.createdAt - a.createdAt).map(m => {
+                return `
+                    <div class="memo-item ${m.id === state.activeMemoId ? 'active' : ''}" onclick="selectMemo('${m.id}')">
+                        <span class="font-bold text-lg leading-tight truncate">${escapeHTML(m.title || 'Untitled')}</span>
+                        <div class="flex items-center gap-2 text-xs font-bold opacity-70">
+                            <i data-lucide="mic" class="w-3 h-3"></i> 
+                            ${new Date(m.createdAt).toLocaleString([], {month:'short', day:'numeric'})}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function selectMemo(id) {
+            state.activeMemoId = id;
+            renderList();
+            loadActiveMemo();
+        }
+
+        function loadActiveMemo() {
+            const memo = state.memos.find(m => m.id === state.activeMemoId);
+            if (memo) {
+                els.empty.style.display = 'none';
+                els.editor.style.display = 'block';
+                
+                els.title.value = memo.title;
+                els.player.src = memo.audioData;
+                els.dateDisplay.innerText = `Recorded on ${new Date(memo.createdAt).toLocaleString()}`;
+            } else {
+                els.empty.style.display = 'flex';
+                els.editor.style.display = 'none';
+                els.player.src = '';
+            }
+        }
+
+        function saveCurrentTitle() {
+            const memo = state.memos.find(m => m.id === state.activeMemoId);
+            if (memo) {
+                memo.title = els.title.value;
+                renderList(); 
+                debouncedSave();
+            }
+        }
+
+        function deleteCurrentMemo() {
+            if(confirm("Delete this voice memo?")) {
+                state.memos = state.memos.filter(m => m.id !== state.activeMemoId);
+                if (state.memos.length > 0) {
+                    selectMemo(state.memos[0].id);
+                } else {
+                    state.activeMemoId = null;
+                    loadActiveMemo();
+                    renderList();
+                }
+                debouncedSave();
+            }
+        }
+
+        function escapeHTML(str) { 
+            const p = document.createElement('p'); p.appendChild(document.createTextNode(str)); return p.innerHTML; 
+        }
+
+        // --- Storage & Cloudflare Sync ---
+        let syncTimer = null;
+        function debouncedSave() {
+            clearTimeout(syncTimer);
+            syncTimer = setTimeout(() => { saveStateAndSync(); }, 1500);
+        }
+
+        function saveStateAndSync() {
+            localStorage.setItem('neo-memos-state', JSON.stringify(state));
+            if(authToken) pushMemos();
+        }
+
+        function showSyncStatus(type) {
+            if(type === 'syncing') els.syncStatus.innerHTML = '<i data-lucide="loader" class="w-3 h-3 animate-spin"></i> Syncing...';
+            if(type === 'saved') els.syncStatus.innerHTML = '<i data-lucide="cloud-check" class="w-3 h-3 text-green-600"></i> Saved to Cloud';
+            if(type === 'error') els.syncStatus.innerHTML = '<i data-lucide="alert-circle" class="w-3 h-3 text-red-600"></i> Offline';
+            lucide.createIcons();
+            els.syncStatus.style.opacity = 1;
+            setTimeout(() => els.syncStatus.style.opacity = 0.5, 3000);
+        }
+
+        async function pullMemos() {
+            showSyncStatus('syncing');
+            try {
+                const response = await fetch(`${API_URL}/api/voice-memos-sync`, { method: 'GET', headers: { 'Authorization': `Bearer ${authToken}` }});
+                const data = await response.json();
+                if (data.success && data.serverData && data.serverData.memos) {
+                    state.memos = data.serverData.memos;
+                    if(!state.memos.find(m => m.id === state.activeMemoId) && state.memos.length > 0) {
+                        state.activeMemoId = state.memos[0].id;
+                    }
+                    renderList();
+                    loadActiveMemo();
+                    showSyncStatus('saved');
+                }
+            } catch (err) { showSyncStatus('error'); }
+        }
+
+        async function pushMemos() {
+            showSyncStatus('syncing');
+            try {
+                const response = await fetch(`${API_URL}/api/voice-memos-sync`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ memos: state.memos })
+                });
+                if(response.ok) showSyncStatus('saved');
+                else showSyncStatus('error');
+            } catch (err) { showSyncStatus('error'); }
+        }
+
+        // Start
+        init();
+
+    </script>
+</body>
+</html>
