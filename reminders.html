@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Reminders | Handdrawn</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        :root {
+            --ink: #2f2419;
+            --accent: #d97757;
+            --bg-color: #fdf8ed;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: linear-gradient(145deg, #fdf8ed 0%, #fef4e3 100%);
+            font-family: 'Kalam', cursive;
+            color: var(--ink);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* Subtle paper texture */
+        body::before {
+            content: ""; position: fixed; inset: 0;
+            background-image: radial-gradient(#e0d6c0 1px, transparent 1px);
+            background-size: 24px 24px; opacity: 0.2; pointer-events: none; z-index: -1;
+        }
+
+        .sketch-input {
+            background: rgba(255,255,255,0.4); 
+            border: 2px solid #3f2d1b;
+            border-radius: 12px 6px 14px 8px;
+            color: var(--ink); 
+            width: 100%;
+            padding: 0.75rem 1rem;
+            outline: none;
+            box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        .sketch-input:focus {
+            box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.08);
+            transform: translate(-1px, -1px);
+        }
+
+        .sketch-btn {
+            background: #fffaf2; border: 2px solid #3f2d1b;
+            border-radius: 12px 6px 14px 8px; font-weight: bold;
+            cursor: pointer; transition: all 0.2s ease;
+            box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.05);
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 0.5rem 1rem;
+        }
+        .sketch-btn.primary {
+            background: #f3b3a2; /* Reminder accent color */
+            color: var(--ink);
+        }
+        .sketch-btn:hover { transform: translateY(-2px); box-shadow: 3px 6px 0 rgba(0, 0, 0, 0.08); }
+        .sketch-btn:active { transform: translateY(0); box-shadow: 1px 2px 0 rgba(0, 0, 0, 0.05); }
+
+        .reminder-item {
+            padding: 1rem; border-bottom: 2px dashed rgba(63, 45, 27, 0.2);
+            cursor: pointer; transition: background 0.2s;
+            display: flex; flex-direction: column; gap: 0.25rem;
+        }
+        .reminder-item:hover { background: rgba(0,0,0,0.02); }
+        .reminder-item.active { background: rgba(0,0,0,0.05); }
+        .reminder-item.expired { opacity: 0.5; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0, 0.2); border-radius: 4px; }
+
+        /* Toggle Switch */
+        .sketch-toggle {
+            width: 44px; height: 24px;
+            background: rgba(0,0,0, 0.1);
+            border-radius: 12px; position: relative; cursor: pointer;
+            transition: background 0.3s; flex-shrink: 0;
+            border: 2px solid var(--ink);
+        }
+        .sketch-toggle::after {
+            content: ''; position: absolute; top: 1px; left: 1px;
+            width: 18px; height: 18px; background: #fffaf2; border-radius: 50%;
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            border: 2px solid var(--ink);
+        }
+        .sketch-toggle.checked { background: #f3b3a2; }
+        .sketch-toggle.checked::after { transform: translateX(20px); }
+
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar: Reminders List -->
+    <aside class="w-64 sm:w-80 border-r-2 border-[var(--ink)] flex flex-col bg-[rgba(255,255,255,0.3)] backdrop-blur-sm z-10 shrink-0">
+        <div class="p-6 border-b-2 border-[var(--ink)] flex justify-between items-center">
+            <h1 class="text-3xl font-bold flex items-center gap-2"><i class="fas fa-bell text-[#f3b3a2]"></i> Reminders</h1>
+            <button class="sketch-btn px-3" onclick="createNewReminder()" title="New Reminder"><i data-lucide="plus"></i></button>
+        </div>
+        <div class="flex-1 overflow-y-auto" id="reminders-list">
+            <!-- Reminders injected via JS -->
+        </div>
+        <div class="p-4 border-t-2 border-[var(--ink)] text-center">
+            <a href="index.html" class="sketch-btn w-full justify-center text-sm"><i data-lucide="arrow-left"></i> Back to Tasks</a>
+        </div>
+    </aside>
+
+    <!-- Main Editor -->
+    <main class="flex-1 flex flex-col relative p-4 sm:p-8 overflow-y-auto">
+        <div class="max-w-2xl w-full mx-auto space-y-6" id="editor-container" style="display: none;">
+            
+            <div class="flex justify-between items-end border-b-2 border-[var(--ink)] pb-4">
+                <h2 class="text-2xl font-bold">Reminder Details</h2>
+                <button class="sketch-btn text-red-600 px-3 py-1" onclick="deleteCurrentReminder()"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block font-bold text-sm mb-1 opacity-70">What to remember?</label>
+                    <input type="text" id="rem-title" class="sketch-input text-2xl font-bold" placeholder="Buy coffee..." oninput="saveCurrentReminder()">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-sm mb-1 opacity-70">Extra Details</label>
+                    <textarea id="rem-details" class="sketch-input min-h-[100px] resize-y" placeholder="Any extra info..." oninput="saveCurrentReminder()"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-bold text-sm mb-1 opacity-70">When?</label>
+                        <input type="datetime-local" id="rem-date" class="sketch-input cursor-pointer" oninput="saveCurrentReminder()">
+                    </div>
+                </div>
+
+                <div class="pt-4 flex items-center justify-between border-t-2 border-dashed border-[rgba(0,0,0,0.1)]">
+                    <div class="flex flex-col">
+                        <label class="font-bold text-lg">Push Notification</label>
+                        <span class="text-xs opacity-60">Requires Vercel & Permissions</span>
+                    </div>
+                    <div class="sketch-toggle" id="rem-notify" onclick="toggleReminderPush()"></div>
+                </div>
+            </div>
+
+        </div>
+        
+        <div id="empty-state" class="flex-1 flex items-center justify-center opacity-50 font-bold text-xl flex-col gap-4">
+            <i class="fas fa-bell text-4xl"></i>
+            <p>Select or create a reminder.</p>
+        </div>
+    </main>
+
+    <!-- Sync Indicator -->
+    <div id="sync-status" class="fixed bottom-4 right-4 text-xs font-bold opacity-50 flex items-center gap-1 transition-opacity">
+        <i data-lucide="cloud-check" class="w-4 h-4"></i> Saved
+    </div>
+
+    <script>
+        // --- State ---
+        const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
+        const API_URL = 'https://neo-tasks-backend.sawyerbobk563.workers.dev'; 
+
+        let state = {
+            reminders: [],
+            activeReminderId: null
+        };
+        let authToken = null;
+
+        // --- DOM ---
+        const els = {
+            list: document.getElementById('reminders-list'),
+            editor: document.getElementById('editor-container'),
+            empty: document.getElementById('empty-state'),
+            title: document.getElementById('rem-title'),
+            details: document.getElementById('rem-details'),
+            date: document.getElementById('rem-date'),
+            notifyToggle: document.getElementById('rem-notify'),
+            syncStatus: document.getElementById('sync-status')
+        };
+
+        // --- App Boot ---
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i=0;i < ca.length;i++) {
+                let c = ca[i];
+                while (c.charAt(0)==' ') c = c.substring(1,c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+            }
+            return null;
+        }
+
+        function init() {
+            lucide.createIcons();
+            authToken = getCookie('auth_token');
+            
+            // Load local
+            const saved = localStorage.getItem('neo-reminders-state');
+            if (saved) {
+                state = JSON.parse(saved);
+            }
+
+            if (state.reminders.length > 0) {
+                if(!state.activeReminderId) state.activeReminderId = state.reminders[0].id;
+                renderList();
+                loadActiveReminder();
+            } else {
+                renderList();
+            }
+
+            // Pull cloud data
+            if(authToken) pullReminders();
+        }
+
+        // --- Core Logic ---
+        function createNewReminder() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            
+            const newReminder = {
+                id: generateId(),
+                title: '',
+                details: '',
+                remindAt: now.toISOString().slice(0,16),
+                pushNotify: false,
+                notified: false,
+                updatedAt: Date.now()
+            };
+            state.reminders.unshift(newReminder);
+            state.activeReminderId = newReminder.id;
+            
+            renderList();
+            loadActiveReminder();
+            els.title.focus();
+            debouncedSave();
+        }
+
+        function renderList() {
+            const now = new Date().getTime();
+            els.list.innerHTML = state.reminders.sort((a,b) => new Date(a.remindAt) - new Date(b.remindAt)).map(r => {
+                const remTime = new Date(r.remindAt).getTime();
+                const isExpired = remTime < now;
+                
+                return `
+                    <div class="reminder-item ${r.id === state.activeReminderId ? 'active' : ''} ${isExpired ? 'expired' : ''}" onclick="selectReminder('${r.id}')">
+                        <span class="font-bold text-lg leading-tight truncate">${r.title || 'Untitled Reminder'}</span>
+                        <div class="flex items-center gap-2 text-xs font-bold opacity-70">
+                            <i data-lucide="clock" class="w-3 h-3"></i> 
+                            ${new Date(r.remindAt).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}
+                            ${r.pushNotify ? '<i data-lucide="bell" class="w-3 h-3 ml-1 text-[#d97757]"></i>' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function selectReminder(id) {
+            state.activeReminderId = id;
+            renderList();
+            loadActiveReminder();
+        }
+
+        function loadActiveReminder() {
+            const reminder = state.reminders.find(r => r.id === state.activeReminderId);
+            if (reminder) {
+                els.empty.style.display = 'none';
+                els.editor.style.display = 'block';
+                
+                els.title.value = reminder.title;
+                els.details.value = reminder.details;
+                els.date.value = reminder.remindAt;
+                
+                if (reminder.pushNotify) els.notifyToggle.classList.add('checked');
+                else els.notifyToggle.classList.remove('checked');
+            } else {
+                els.empty.style.display = 'flex';
+                els.editor.style.display = 'none';
+            }
+        }
+
+        function saveCurrentReminder() {
+            const reminder = state.reminders.find(r => r.id === state.activeReminderId);
+            if (reminder) {
+                reminder.title = els.title.value;
+                reminder.details = els.details.value;
+                
+                // If date changed, reset notified flag
+                if (reminder.remindAt !== els.date.value) {
+                    reminder.notified = false;
+                }
+                reminder.remindAt = els.date.value;
+                
+                reminder.updatedAt = Date.now();
+                renderList(); 
+                debouncedSave();
+            }
+        }
+
+        async function toggleReminderPush() {
+            const reminder = state.reminders.find(r => r.id === state.activeReminderId);
+            if (!reminder) return;
+
+            reminder.pushNotify = !reminder.pushNotify;
+            
+            if (reminder.pushNotify) {
+                els.notifyToggle.classList.add('checked');
+                // Request push permissions via browser (Vercel prep)
+                if ('Notification' in window && Notification.permission !== 'granted') {
+                    const perm = await Notification.requestPermission();
+                    if (perm !== 'granted') {
+                        reminder.pushNotify = false;
+                        els.notifyToggle.classList.remove('checked');
+                        alert("Notification permission denied.");
+                    }
+                }
+            } else {
+                els.notifyToggle.classList.remove('checked');
+            }
+            saveCurrentReminder();
+        }
+
+        function deleteCurrentReminder() {
+            if(confirm("Delete this reminder?")) {
+                state.reminders = state.reminders.filter(r => r.id !== state.activeReminderId);
+                if (state.reminders.length > 0) {
+                    selectReminder(state.reminders[0].id);
+                } else {
+                    state.activeReminderId = null;
+                    loadActiveReminder();
+                    renderList();
+                }
+                debouncedSave();
+            }
+        }
+
+        // --- Storage & Cloudflare Sync ---
+        let syncTimer = null;
+        function debouncedSave() {
+            clearTimeout(syncTimer);
+            syncTimer = setTimeout(() => { saveStateAndSync(); }, 1500);
+        }
+
+        function saveStateAndSync() {
+            localStorage.setItem('neo-reminders-state', JSON.stringify(state));
+            if(authToken) pushReminders();
+        }
+
+        function showSyncStatus(type) {
+            if(type === 'syncing') els.syncStatus.innerHTML = '<i data-lucide="loader" class="w-3 h-3 animate-spin"></i> Syncing...';
+            if(type === 'saved') els.syncStatus.innerHTML = '<i data-lucide="cloud-check" class="w-3 h-3 text-green-600"></i> Saved to Cloud';
+            if(type === 'error') els.syncStatus.innerHTML = '<i data-lucide="alert-circle" class="w-3 h-3 text-red-600"></i> Offline';
+            lucide.createIcons();
+            els.syncStatus.style.opacity = 1;
+            setTimeout(() => els.syncStatus.style.opacity = 0.5, 3000);
+        }
+
+        async function pullReminders() {
+            showSyncStatus('syncing');
+            try {
+                // Requires adding /api/reminders-sync to your Cloudflare worker
+                const response = await fetch(`${API_URL}/api/reminders-sync`, { method: 'GET', headers: { 'Authorization': `Bearer ${authToken}` }});
+                const data = await response.json();
+                if (data.success && data.serverData && data.serverData.reminders) {
+                    state.reminders = data.serverData.reminders;
+                    if(!state.reminders.find(r => r.id === state.activeReminderId) && state.reminders.length > 0) {
+                        state.activeReminderId = state.reminders[0].id;
+                    }
+                    renderList();
+                    loadActiveReminder();
+                    showSyncStatus('saved');
+                }
+            } catch (err) { showSyncStatus('error'); }
+        }
+
+        async function pushReminders() {
+            showSyncStatus('syncing');
+            try {
+                const response = await fetch(`${API_URL}/api/reminders-sync`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ reminders: state.reminders })
+                });
+                if(response.ok) showSyncStatus('saved');
+                else showSyncStatus('error');
+            } catch (err) { showSyncStatus('error'); }
+        }
+
+        // Local Background Checker for Alarms
+        function checkAlarms() {
+            if (!("Notification" in window) || Notification.permission !== "granted") return;
+            const now = new Date();
+            state.reminders.forEach(rem => {
+                if (rem.pushNotify && rem.remindAt && !rem.notified) {
+                    const due = new Date(rem.remindAt);
+                    if (due <= now) {
+                        new Notification("Reminder", { body: rem.title || "You have a reminder!" });
+                        rem.notified = true;
+                        debouncedSave();
+                    }
+                }
+            });
+        }
+        setInterval(checkAlarms, 60000); // Check every minute
+
+        // Start
+        init();
+
+    </script>
+</body>
+</html>
