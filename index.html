@@ -86,6 +86,15 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* Opening Animation */
+        @keyframes app-fade-in {
+            0% { opacity: 0; transform: translateY(15px) scale(0.98); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .app-loaded {
+            animation: app-fade-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
         /* Utilities */
         .neo-border {
             border: var(--border-width) solid var(--black);
@@ -198,7 +207,7 @@
             transform: translateX(20px);
         }
 
-        /* Custom Checkbox - Explicit Circle */
+        /* Custom Checkbox */
         .neo-checkbox {
             width: 24px;
             height: 24px;
@@ -282,9 +291,7 @@
         }
         body.density-borderless .task-date-display { display: none !important; }
 
-        /* Hide details setting */
         body.hide-task-details .task-details-content { display: none !important; }
-        /* Hide count badges setting */
         body.hide-task-counts .list-badge { display: none !important; }
 
         .task-item:hover {
@@ -309,13 +316,12 @@
             background: transparent !important;
             opacity: 0.6;
         }
-
         .task-item.completed-task .task-title {
             text-decoration: line-through;
             opacity: 0.5;
         }
 
-        /* Top Bar Container Anti-Dot Enforcement */
+        /* Top Bar Container */
         #lists-container, .list-item {
             list-style: none !important;
             list-style-type: none !important;
@@ -327,7 +333,6 @@
             display: none !important;
         }
 
-        /* Top Bar List Item (Redesigned Pill) */
         .list-item {
             cursor: pointer;
             padding: 0.4rem 0.75rem;
@@ -361,9 +366,7 @@
             border-color: var(--accent);
             box-shadow: 0 4px 10px rgba(var(--accent-rgb), 0.3);
         }
-        .list-item.active:hover {
-            color: var(--white); /* Fixes disappearing text bug on tap */
-        }
+        .list-item.active:hover { color: var(--white); }
         .list-item.active i { color: var(--white) !important; }
         
         .list-badge {
@@ -384,7 +387,7 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* --- ANIMATIONS & EFFECTS --- */
+        /* Liquid Glass */
         .liquid-glass {
             background: rgba(var(--white-rgb), 0.7);
             backdrop-filter: blur(24px) saturate(180%);
@@ -399,6 +402,7 @@
             box-shadow: 0 8px 32px rgba(var(--black-rgb), 0.08);
         }
 
+        /* Modals */
         .modal-overlay {
             background: rgba(var(--black-rgb), 0.3);
             backdrop-filter: blur(4px);
@@ -415,21 +419,21 @@
         .modal-overlay.open .modal-content { transform: translateY(0) scale(1); }
 
         .full-screen-menu {
-            position: fixed;
-            inset: 0;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            transform: translateY(100%);
-            opacity: 0;
-            pointer-events: none;
+            position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column;
+            transform: translateY(100%); opacity: 0; pointer-events: none;
             transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
         }
         .full-screen-menu.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
 
-        .accordion-wrapper { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease-out; }
+        /* Smooth Accordion */
+        .accordion-wrapper {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         .accordion-wrapper.open { grid-template-rows: 1fr; }
-        .accordion-inner { overflow: hidden; }
+        .accordion-inner { overflow: hidden; min-height: 0; }
+        
         .chevron { transition: transform 0.3s ease; }
         .chevron.open { transform: rotate(180deg); }
 
@@ -450,228 +454,88 @@
             100% { opacity: 1; transform: translateY(0) scale(1); }
         }
         .animating-in { animation: slide-in-up 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        
+        /* View Switching Animation */
         @keyframes view-fade-in {
             0% { opacity: 0; transform: translateY(15px); }
             100% { opacity: 1; transform: translateY(0); }
         }
         .view-enter { animation: view-fade-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
-        /* Toast Container (Top Right Corner) */
+        /* Toast Container */
         #toast-container {
-            position: fixed;
-            top: 1.5rem;
-            right: 1.5rem;
-            left: auto;
-            transform: none;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            pointer-events: none;
+            position: fixed; top: 1.5rem; right: 1.5rem; left: auto; transform: none;
+            z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none;
         }
         
         .toast-notification {
-            background: var(--black);
-            color: var(--white);
-            padding: 0.75rem 1.5rem;
-            border-radius: 999px;
-            font-weight: bold;
-            font-size: 0.875rem;
-            box-shadow: 0 4px 12px rgba(var(--black-rgb), 0.2);
+            background: var(--black); color: var(--white); padding: 0.75rem 1.5rem; border-radius: 999px;
+            font-weight: bold; font-size: 0.875rem; box-shadow: 0 4px 12px rgba(var(--black-rgb), 0.2);
             animation: toast-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            pointer-events: auto; /* Enable swipe to dismiss */
-            cursor: grab;
+            display: flex; align-items: center; gap: 0.5rem; pointer-events: auto; cursor: grab;
             transition: transform 0.2s ease, opacity 0.2s ease;
         }
         .toast-notification:active { cursor: grabbing; }
         .theme-claude .toast-notification {
-            background: var(--accent);
-            color: var(--white);
-            box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);
+            background: var(--accent); color: var(--white); box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);
         }
 
         @keyframes toast-in { 0% { opacity: 0; transform: translateX(20px) scale(0.9); } 100% { opacity: 1; transform: translateX(0) scale(1); } }
         @keyframes toast-out { 0% { opacity: 1; transform: translateX(0) scale(1); } 100% { opacity: 0; transform: translateX(20px) scale(0.9); } }
 
         .glass-oval {
-            background: rgba(var(--black-rgb), 0.05);
-            backdrop-filter: blur(12px);
-            border: var(--border-width) solid transparent;
-            border-radius: 9999px;
-            transition: all 0.2s ease;
-            color: var(--black);
-            cursor: pointer;
+            background: rgba(var(--black-rgb), 0.05); backdrop-filter: blur(12px); border: var(--border-width) solid transparent;
+            border-radius: 9999px; transition: all 0.2s ease; color: var(--black); cursor: pointer;
         }
         .theme-claude .glass-oval { border-color: rgba(var(--black-rgb), 0.1); }
         .glass-oval:hover { background: rgba(var(--black-rgb), 0.1); }
 
         .font-fun {
-            display: inline-block;
-            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), text-shadow 0.25s;
+            display: inline-block; transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), text-shadow 0.25s;
         }
         .font-fun:hover {
-            transform: scale(1.02) rotate(-1deg);
-            text-shadow: 3px 3px 0px #ff3366, -3px -3px 0px #33ccff;
-            color: transparent;
-            -webkit-text-stroke: 2px var(--black);
+            transform: scale(1.02) rotate(-1deg); text-shadow: 3px 3px 0px #ff3366, -3px -3px 0px #33ccff; color: transparent; -webkit-text-stroke: 2px var(--black);
         }
-        .theme-claude .font-fun:hover {
-            text-shadow: none;
-            color: var(--accent);
-            -webkit-text-stroke: 0;
-            transform: translateY(-2px);
-        }
+        .theme-claude .font-fun:hover { text-shadow: none; color: var(--accent); -webkit-text-stroke: 0; transform: translateY(-2px); }
         
-        /* View Nav Links */
         .view-nav-btn {
-            padding-bottom: 0.25rem;
-            border-bottom: 2px solid transparent;
-            transition: border-color 0.2s, color 0.2s;
-            font-weight: bold;
-            font-size: 0.875rem;
-            opacity: 0.5;
+            padding-bottom: 0.25rem; border-bottom: 2px solid transparent; transition: border-color 0.2s, color 0.2s; font-weight: bold; font-size: 0.875rem; opacity: 0.5;
         }
-        .view-nav-btn.active {
-            border-color: var(--accent);
-            color: var(--accent);
-            opacity: 1;
-        }
+        .view-nav-btn.active { border-color: var(--accent); color: var(--accent); opacity: 1; }
 
-        /* --- Handdrawn Side Menu Styles --- */
+        /* Handdrawn Side Menu */
         .hand-menu {
-            position: fixed;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 80px;
-            z-index: 90; /* Right below modals */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none; /* Let clicks pass through container */
+            position: fixed; left: 0; top: 50%; transform: translateY(-50%); width: 80px; z-index: 90; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;
         }
-
         .menu-toggle {
-            position: relative;
-            width: 72px;
-            height: 72px;
-            background: #fff9ef; /* Keep handdrawn color independent of theme */
-            border-radius: 40px 12px 40px 12px;
-            border: 3px solid #3a2c1f;
-            box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.08), inset 0 1px 4px rgba(255, 255, 200, 0.8);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            z-index: 10;
-            pointer-events: auto;
+            position: relative; width: 72px; height: 72px; background: #fff9ef; border-radius: 40px 12px 40px 12px; border: 3px solid #3a2c1f;
+            box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.08), inset 0 1px 4px rgba(255, 255, 200, 0.8); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; z-index: 10; pointer-events: auto;
         }
-
-        .menu-toggle:hover {
-            transform: scale(0.97);
-            background: #fff3e0;
-            box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.08);
-        }
-
-        .burger-icon {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            width: 32px;
-        }
-        .burger-icon span {
-            display: block;
-            height: 4px;
-            background: #4e3b28;
-            border-radius: 20px;
-            transition: all 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);
-        }
+        .menu-toggle:hover { transform: scale(0.97); background: #fff3e0; box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.08); }
+        .burger-icon { display: flex; flex-direction: column; gap: 8px; width: 32px; }
+        .burger-icon span { display: block; height: 4px; background: #4e3b28; border-radius: 20px; transition: all 0.25s; }
         .burger-icon span:first-child { width: 28px; }
         .burger-icon span:nth-child(2) { width: 32px; }
         .burger-icon span:last-child { width: 24px; }
-
-        #menu-checkbox:checked + .menu-toggle .burger-icon span:first-child {
-            transform: rotate(40deg) translate(6px, 8px);
-            width: 28px;
-        }
-        #menu-checkbox:checked + .menu-toggle .burger-icon span:nth-child(2) {
-            opacity: 0;
-            transform: scaleX(0);
-        }
-        #menu-checkbox:checked + .menu-toggle .burger-icon span:last-child {
-            transform: rotate(-40deg) translate(5px, -8px);
-            width: 28px;
-        }
+        
+        #menu-checkbox:checked + .menu-toggle .burger-icon span:first-child { transform: rotate(40deg) translate(6px, 8px); width: 28px; }
+        #menu-checkbox:checked + .menu-toggle .burger-icon span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+        #menu-checkbox:checked + .menu-toggle .burger-icon span:last-child { transform: rotate(-40deg) translate(5px, -8px); width: 28px; }
 
         .menu-items-container {
-            position: absolute;
-            left: 86px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-            justify-content: flex-start;
-            pointer-events: none;
+            position: absolute; left: 86px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 18px; pointer-events: none;
         }
-
-        /* Frosted Bubble behind side menu items */
         .menu-items-container::before {
-            content: '';
-            position: absolute;
-            top: -30px;
-            bottom: -30px;
-            left: -30px;
-            right: -50px;
-            background: rgba(var(--white-rgb), 0.5);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 40px;
-            z-index: -1;
-            opacity: 0;
-            transition: opacity 0.38s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-            pointer-events: none;
+            content: ''; position: absolute; top: -30px; bottom: -30px; left: -30px; right: -50px;
+            background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 40px; z-index: -1; opacity: 0; transition: opacity 0.38s; pointer-events: none;
         }
-        #menu-checkbox:checked ~ .menu-items-container::before {
-            opacity: 1;
-        }
+        #menu-checkbox:checked ~ .menu-items-container::before { opacity: 1; }
 
         .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            background: #fffaf2;
-            padding: 8px 18px 8px 16px;
-            border-radius: 60px 20px 60px 20px;
-            border: 2.5px solid #3f2d1b;
-            box-shadow: 5px 6px 0 rgba(0, 0, 0, 0.06);
-            text-decoration: none;
-            font-family: 'Kalam', cursive;
-            font-weight: 600;
-            font-size: 1.4rem;
-            color: #2f2419;
-            transition: transform 0.3s ease, opacity 0.2s ease, visibility 0s linear 0.25s;
-            white-space: nowrap;
-            transform: translateX(-20px);
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-            letter-spacing: -0.3px;
+            display: flex; align-items: center; gap: 14px; background: #fffaf2; padding: 8px 18px 8px 16px; border-radius: 60px 20px 60px 20px; border: 2.5px solid #3f2d1b; box-shadow: 5px 6px 0 rgba(0, 0, 0, 0.06); text-decoration: none; font-family: 'Kalam', cursive; font-weight: 600; font-size: 1.4rem; color: #2f2419; transition: transform 0.3s ease, opacity 0.2s ease, visibility 0s linear 0.25s; white-space: nowrap; transform: translateX(-20px); opacity: 0; visibility: hidden; pointer-events: none;
         }
-        
-        .menu-item i {
-            font-size: 1.8rem;
-            width: 36px;
-            text-align: center;
-            color: #5c3f28;
-            filter: drop-shadow(1px 1px 0px rgba(0,0,0,0.1));
-            transition: transform 0.2s;
-        }
+        .menu-item i { font-size: 1.8rem; width: 36px; text-align: center; color: #5c3f28; transition: transform 0.2s; }
         .item-text { font-size: 1.35rem; font-weight: 500; padding-right: 6px; }
 
         .menu-item.tasks { background: #fef7e0; border-left: 6px solid #e3b87c; }
@@ -679,43 +543,29 @@
         .menu-item.reminders { background: #fcefec; border-left: 6px solid #f3b3a2; }
         .menu-item.voice-memo { background: #eef5fc; border-left: 6px solid #8fb9d4; }
 
-        .menu-item:hover {
-            transform: translateX(6px) scale(1.02);
-            background: #fffcf5;
-            box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.05);
-        }
+        .menu-item:hover { transform: translateX(6px) scale(1.02); background: #fffcf5; box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.05); }
 
-        #menu-checkbox:checked ~ .menu-items-container .menu-item {
-            transform: translateX(0);
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-            transition: transform 0.38s cubic-bezier(0.2, 0.9, 0.4, 1.1), opacity 0.3s ease, visibility 0s linear 0s;
-        }
-
+        #menu-checkbox:checked ~ .menu-items-container .menu-item { transform: translateX(0); opacity: 1; visibility: visible; pointer-events: auto; transition: transform 0.38s cubic-bezier(0.2, 0.9, 0.4, 1.1), opacity 0.3s ease, visibility 0s linear 0s; }
         #menu-checkbox:checked ~ .menu-items-container .menu-item:nth-child(1) { transition-delay: 0.02s; }
         #menu-checkbox:checked ~ .menu-items-container .menu-item:nth-child(2) { transition-delay: 0.08s; }
         #menu-checkbox:checked ~ .menu-items-container .menu-item:nth-child(3) { transition-delay: 0.14s; }
         #menu-checkbox:checked ~ .menu-items-container .menu-item:nth-child(4) { transition-delay: 0.2s; }
 
-        .menu-item.tasks i { transform: rotate(-3deg); }
-        .menu-item.notes i { transform: rotate(2deg); }
-        .menu-item.reminders i { transform: rotate(-1deg); }
-        .menu-item.voice-memo i { transform: rotate(4deg); }
         .menu-item:hover i { transform: rotate(0deg) scale(1.05); transition: transform 0.2s; }
-        
         .menu-item:focus, .menu-toggle:focus { outline: none; }
-        .menu-item, .menu-toggle, .menu-items-container { will-change: transform, opacity; }
 
-        @media (max-width: 640px) {
-            .menu-item .item-text { font-size: 1.1rem; }
-            .menu-item i { font-size: 1.5rem; width: 30px; }
-            .menu-item { padding: 6px 12px 6px 12px; gap: 10px; }
+        /* Responsive Main Layout Alignment */
+        @media (min-width: 640px) {
+            .app-wrapper { margin-left: 80px; } 
+        }
+        @media (max-width: 639px) {
+            .hand-menu { z-index: 100; }
             .menu-items-container { left: 78px; gap: 14px; }
             .menu-items-container::before { left: -10px; right: -20px; top: -15px; bottom: -15px; }
             .menu-toggle { width: 64px; height: 64px; }
-            .burger-icon { gap: 6px; width: 28px; }
-            .burger-icon span { height: 3px; }
+            .menu-item .item-text { font-size: 1.1rem; }
+            .menu-item i { font-size: 1.5rem; width: 30px; }
+            .menu-item { padding: 6px 12px 6px 12px; gap: 10px; }
         }
     </style>
 </head>
@@ -736,7 +586,7 @@
             </div>
         </label>
         <div class="menu-items-container">
-            <a href="#" class="menu-item tasks" onclick="switchView('home'); document.getElementById('menu-checkbox').checked = false; event.preventDefault();">
+            <a href="index.html" class="menu-item tasks">
                 <i class="fas fa-check-circle"></i>
                 <span class="item-text">Tasks</span>
             </a>
@@ -744,7 +594,7 @@
                 <i class="fas fa-pen-fancy"></i>
                 <span class="item-text">Notes</span>
             </a>
-            <a href="#" class="menu-item reminders" onclick="showToast('Reminders coming soon to GitHub repo!'); document.getElementById('menu-checkbox').checked = false; event.preventDefault();">
+            <a href="reminders.html" class="menu-item reminders">
                 <i class="fas fa-bell"></i>
                 <span class="item-text">Reminders</span>
             </a>
@@ -755,87 +605,102 @@
         </div>
     </div>
 
-    <!-- Top Navigation (Groups/Lists) -->
-    <nav class="flex items-center justify-center overflow-x-auto px-6 py-2 liquid-glass border-x-0 border-t-0 border-b-2 !rounded-none z-10 shrink-0 hide-scrollbar w-full relative pl-24">
-        <ul id="lists-container" class="flex items-center justify-center flex-nowrap w-max gap-2 m-0 p-0">
-            <!-- Lists injected via JS -->
-        </ul>
-        <div class="w-px h-5 bg-[rgba(var(--black-rgb),0.2)] mx-4 shrink-0"></div>
-        <button id="add-list-btn" class="glass-oval shrink-0 p-2 text-sm font-bold flex items-center justify-center w-8 h-8" title="New List" onclick="openListModal()">
-            <i data-lucide="plus" class="w-4 h-4"></i>
-        </button>
-    </nav>
-
-    <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col overflow-y-auto relative pb-32">
+    <!-- Main Application Wrapper (Pushed Right on Desktop) -->
+    <div class="app-wrapper flex-1 flex flex-col h-full w-full max-w-5xl mx-auto" id="main-app-wrapper">
         
-        <!-- View Navigation Switcher -->
-        <div class="flex justify-center gap-6 pt-4 shrink-0 pl-16 sm:pl-0" id="view-nav-container">
-            <button class="view-nav-btn active" onclick="switchView('home')">Home</button>
-            <button class="view-nav-btn" onclick="switchView('list')">List View</button>
-            <button class="view-nav-btn" onclick="switchView('calendar')">Calendar</button>
+        <!-- Action Banners (Login/PWA) -->
+        <div id="action-banners" class="px-4 pt-4 flex flex-col gap-2 empty:hidden z-20">
+            <div id="install-pwa-container" class="neo-border p-3 bg-[rgba(var(--accent-rgb),0.1)] rounded-xl hidden flex justify-between items-center">
+                <span class="text-sm font-bold"><i data-lucide="download" class="w-4 h-4 inline mr-1"></i> Install Neo Tasks App</span>
+                <button class="neo-btn primary px-3 py-1 text-xs" onclick="installPWA()">Install</button>
+            </div>
+            <div id="login-sync-banner" class="neo-border p-3 bg-[rgba(var(--black-rgb),0.05)] rounded-xl hidden flex justify-between items-center cursor-pointer" onclick="openSettingsScreen()">
+                <span class="text-sm font-bold"><i data-lucide="cloud-off" class="w-4 h-4 inline mr-1"></i> Cloud Sync Paused</span>
+                <span class="text-xs font-bold opacity-70">Log in &rarr;</span>
+            </div>
         </div>
-        
-        <!-- Tasks Area -->
-        <div class="p-4 sm:p-6 pt-6 flex-1 max-w-4xl w-full mx-auto pl-20 sm:pl-6" id="main-view-area">
-            <!-- Dynamic Content Injected Here -->
-        </div>
-    </main>
 
-    <!-- Bottom Backdrop Blur & FABs -->
-    <div class="fixed bottom-0 left-0 right-0 h-32 z-30 pointer-events-none" style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); mask-image: linear-gradient(to top, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 100%); -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 100%);"></div>
-
-    <div class="fixed bottom-6 left-0 right-0 px-6 flex justify-between items-end z-40 pointer-events-none max-w-4xl mx-auto pl-24 sm:pl-6">
-        
-        <!-- Settings FAB (Left) -->
-        <button id="fab-settings" class="neo-btn w-12 h-12 rounded-full flex items-center justify-center pointer-events-auto liquid-glass !border-[var(--border-width)]" title="Settings (Cmd/Ctrl+S)" onclick="openSettingsScreen()">
-            <i data-lucide="settings" class="w-6 h-6"></i>
-        </button>
-
-        <!-- Main Add Task FAB (Center) -->
-        <button id="fab-add-task" class="neo-btn primary w-16 h-16 rounded-full flex items-center justify-center pointer-events-auto border-[var(--border-width)] hover:scale-105 active:scale-95 shadow-[0_4px_16px_rgba(var(--accent-rgb),0.4)]" style="transform-origin: center;" title="Add Task (Cmd/Ctrl+K)" onclick="openNewTaskMenuRouter()">
-            <i data-lucide="plus" class="w-8 h-8"></i>
-        </button>
-
-        <!-- Tools FAB (Right) -->
-        <div class="relative pointer-events-auto">
-            <button id="fab-tools" class="neo-btn w-12 h-12 rounded-full flex items-center justify-center liquid-glass !border-[var(--border-width)]" title="Tools & Sort" onclick="toggleToolsDropdown(event)">
-                <i data-lucide="more-horizontal" class="w-6 h-6"></i>
+        <!-- Top Navigation (Groups/Lists) -->
+        <nav class="flex items-center justify-center overflow-x-auto px-4 py-3 border-b-2 border-[rgba(var(--black-rgb),0.1)] shrink-0 hide-scrollbar w-full relative">
+            <ul id="lists-container" class="flex items-center justify-center flex-nowrap w-max gap-2 m-0 p-0">
+                <!-- Lists injected via JS -->
+            </ul>
+            <div class="w-px h-5 bg-[rgba(var(--black-rgb),0.2)] mx-3 shrink-0"></div>
+            <button id="add-list-btn" class="glass-oval shrink-0 p-2 text-sm font-bold flex items-center justify-center w-8 h-8" title="New List" onclick="openListModal()">
+                <i data-lucide="plus" class="w-4 h-4"></i>
             </button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col overflow-y-auto relative pb-32">
+            <!-- View Navigation Switcher -->
+            <div class="flex justify-center gap-6 pt-4 shrink-0 pl-16 sm:pl-0" id="view-nav-container">
+                <button class="view-nav-btn active" onclick="switchView('home')">Home</button>
+                <button class="view-nav-btn" onclick="switchView('list')">List View</button>
+                <button class="view-nav-btn" onclick="switchView('calendar')">Calendar</button>
+            </div>
             
-            <!-- Tools Dropdown -->
-            <div id="tools-dropdown" class="absolute bottom-16 right-0 liquid-glass w-56 p-4 hidden flex-col z-50 origin-bottom-right">
-                <h3 class="text-lg font-black uppercase mb-3 border-b border-[rgba(var(--black-rgb),0.2)] pb-1">Tools</h3>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block font-bold uppercase text-xs mb-1">Sort Tasks</label>
-                        <select id="sort-tasks" class="neo-input w-full cursor-pointer appearance-none rounded-none font-bold py-1 px-2 text-sm bg-transparent" onchange="state.currentSort = this.value; saveStateAndRender(); toggleToolsDropdown(new Event('click'));">
-                            <option value="default">Default (Custom)</option>
-                            <option value="date">By Date</option>
-                            <option value="importance">Important First</option>
-                            <option value="az">A-Z</option>
-                        </select>
+            <!-- Tasks Area -->
+            <div class="p-4 sm:p-6 flex-1 w-full mx-auto pl-20 sm:pl-6" id="main-view-area">
+                <!-- Dynamic Content Injected Here -->
+            </div>
+        </main>
+
+        <!-- Bottom Backdrop Blur & FABs -->
+        <div class="fixed bottom-0 left-0 right-0 h-32 z-30 pointer-events-none" style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); mask-image: linear-gradient(to top, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 100%); -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 100%);"></div>
+
+        <div class="fixed bottom-6 left-0 right-0 px-6 flex justify-between items-end z-40 pointer-events-none max-w-5xl mx-auto pl-24 sm:pl-6">
+            
+            <!-- Settings FAB (Left) -->
+            <button id="fab-settings" class="neo-btn w-12 h-12 rounded-full flex items-center justify-center pointer-events-auto liquid-glass !border-[var(--border-width)]" title="Settings (Cmd/Ctrl+S)" onclick="openSettingsScreen()">
+                <i data-lucide="settings" class="w-6 h-6"></i>
+            </button>
+
+            <!-- Main Add Task FAB (Center) -->
+            <button id="fab-add-task" class="neo-btn primary w-16 h-16 rounded-full flex items-center justify-center pointer-events-auto border-[var(--border-width)] hover:scale-105 active:scale-95 shadow-[0_4px_16px_rgba(var(--accent-rgb),0.4)]" style="transform-origin: center;" title="Add Task (Cmd/Ctrl+K)" onclick="openNewTaskMenuRouter(event)">
+                <i data-lucide="plus" class="w-8 h-8"></i>
+            </button>
+
+            <!-- Tools FAB (Right) -->
+            <div class="relative pointer-events-auto">
+                <button id="fab-tools" class="neo-btn w-12 h-12 rounded-full flex items-center justify-center liquid-glass !border-[var(--border-width)]" title="Tools & Sort" onclick="toggleToolsDropdown(event)">
+                    <i data-lucide="more-horizontal" class="w-6 h-6"></i>
+                </button>
+                
+                <!-- Tools Dropdown -->
+                <div id="tools-dropdown" class="absolute bottom-16 right-0 liquid-glass w-56 p-4 hidden flex-col z-50 origin-bottom-right">
+                    <h3 class="text-lg font-black uppercase mb-3 border-b border-[rgba(var(--black-rgb),0.2)] pb-1">Tools</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block font-bold uppercase text-xs mb-1">Sort Tasks</label>
+                            <select id="sort-tasks" class="neo-input w-full cursor-pointer appearance-none rounded-none font-bold py-1 px-2 text-sm bg-transparent" onchange="state.currentSort = this.value; saveStateAndRender(); toggleToolsDropdown(new Event('click'));">
+                                <option value="default">Default (Custom)</option>
+                                <option value="date">By Date</option>
+                                <option value="importance">Important First</option>
+                                <option value="az">A-Z</option>
+                            </select>
+                        </div>
+                        <button type="button" class="neo-btn w-full py-2 text-sm bg-transparent" onclick="markAllCompleted()">
+                            <i data-lucide="check-square" class="w-4 h-4 mr-2"></i> Mark All Done
+                        </button>
+                        <button type="button" class="neo-btn w-full py-2 text-sm bg-transparent" onclick="clearCompletedTasks()">
+                            <i data-lucide="trash" class="w-4 h-4 mr-2"></i> Clear Completed
+                        </button>
+                        <button type="button" class="neo-btn w-full py-2 text-sm bg-transparent text-red-500 border-red-500" onclick="deleteAllTasks()">
+                            <i data-lucide="alert-triangle" class="w-4 h-4 mr-2"></i> Delete All Tasks
+                        </button>
+                        <button type="button" class="neo-btn w-full py-2 text-sm bg-transparent" onclick="exportData()">
+                            <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export Data
+                        </button>
                     </div>
-                    <button type="button" class="neo-btn w-full py-2 text-sm bg-transparent" onclick="markAllCompleted()">
-                        <i data-lucide="check-square" class="w-4 h-4 mr-2"></i> Mark All Done
-                    </button>
-                    <button type="button" class="neo-btn w-full py-2 text-sm bg-transparent" onclick="clearCompletedTasks()">
-                        <i data-lucide="trash" class="w-4 h-4 mr-2"></i> Clear Completed
-                    </button>
-                    <button type="button" class="neo-btn w-full py-2 text-sm bg-transparent text-red-500 border-red-500" onclick="deleteAllTasks()">
-                        <i data-lucide="alert-triangle" class="w-4 h-4 mr-2"></i> Delete All Tasks
-                    </button>
-                    <button type="button" class="neo-btn w-full py-2 text-sm bg-transparent" onclick="exportData()">
-                        <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export Data
-                    </button>
                 </div>
             </div>
         </div>
-    </div>
+    </div> <!-- /app-wrapper -->
 
     <!-- Alt Add Task Menu (Compact Bottom Bar) -->
     <div id="alt-new-task-menu" class="fixed bottom-0 left-0 right-0 p-4 liquid-glass !border-x-0 !border-b-0 !rounded-none z-50 transform translate-y-[120%] transition-transform duration-300">
-        <form id="alt-new-task-form" class="flex gap-2 max-w-4xl mx-auto items-center pl-16 sm:pl-0" onsubmit="submitAltNewTask(event)">
+        <form id="alt-new-task-form" class="flex gap-2 max-w-4xl mx-auto items-center sm:ml-20" onsubmit="submitAltNewTask(event)">
             <input type="text" id="alt-new-task-title" class="neo-input flex-1 bg-transparent border-t-0 border-x-0 border-b-2 !border-[rgba(var(--black-rgb),0.1)] !rounded-none focus:bg-[rgba(var(--black-rgb),0.05)] px-2 focus:border-[var(--accent)]" placeholder="What needs to be done?" required autocomplete="off">
             <button type="button" class="neo-btn p-2 bg-transparent border-transparent shadow-none" onclick="expandToFullNewTask()" title="Add details..."><i data-lucide="maximize-2" class="w-5 h-5"></i></button>
             <button type="submit" class="neo-btn primary px-5 py-2">Add</button>
@@ -1071,13 +936,6 @@
         
         <div class="p-6 space-y-8 overflow-y-auto flex-1 bg-transparent max-w-4xl w-full mx-auto pb-12 pl-20 sm:pl-6">
             
-            <!-- PWA Install Prompt (Hidden by default) -->
-            <div id="install-pwa-container" class="neo-border p-5 bg-[rgba(var(--accent-rgb),0.1)] rounded-xl hidden">
-                <h3 class="text-lg font-black uppercase mb-4 border-b border-[rgba(var(--black-rgb),0.1)] pb-2 flex items-center gap-2"><i data-lucide="download"></i> Install App</h3>
-                <p class="text-sm font-bold opacity-70 mb-4">Install Neo Tasks to your device for a full-screen, offline experience.</p>
-                <button class="neo-btn primary w-full py-2" onclick="installPWA()">Install Neo Tasks</button>
-            </div>
-
             <!-- Lifetime Totals -->
             <div class="grid grid-cols-2 gap-4">
                 <div class="neo-border p-4 bg-[rgba(var(--black-rgb),0.02)] text-center rounded-xl">
@@ -1245,7 +1103,7 @@
             </div>
 
             <div class="text-center pt-4 pb-4 opacity-50 text-xs font-bold uppercase tracking-widest">
-                Neo Tasks v3.7.0 (Build 248)
+                Neo Tasks v3.9.0 (Build 274)
             </div>
         </div>
     </div>
@@ -1607,6 +1465,16 @@
 
         function renderMainArea() {
             if(!els.mainViewArea) return;
+            
+            // Show Auth Banner if needed
+            const banners = document.getElementById('action-banners');
+            const loginBanner = document.getElementById('login-sync-banner');
+            const installBanner = document.getElementById('install-pwa-container');
+            if(loginBanner) {
+                if(!state.auth.token) loginBanner.classList.remove('hidden');
+                else loginBanner.classList.add('hidden');
+            }
+
             if (state.currentView === 'home') {
                 let currentTasks = state.activeListId === 'important' ? state.tasks.filter(t => t.important) : state.tasks.filter(t => t.listId === state.activeListId);
                 currentTasks = sortTasksArray(currentTasks);
@@ -1624,7 +1492,7 @@
                     <div id="active-tasks" class="space-y-4 mb-4" ondragover="dragOver(event)" ondragleave="dragLeave(event)">${activeHtml}</div>
                     <div class="mt-8 pt-6 border-t-2 border-[rgba(var(--black-rgb),0.1)]">
                         <button onclick="toggleCompletedSection()" class="flex items-center gap-2 font-bold uppercase tracking-wider text-sm mb-2 hover:opacity-80 transition-colors text-[rgba(var(--black-rgb),0.6)] bg-transparent border-0 shadow-none hover:text-[var(--black)] p-0" style="display: ${completed.length > 0 ? 'inline-flex' : 'none'}">
-                            <i data-lucide="chevron-down" class="w-4 h-4 chevron ${state.showCompleted ? 'open' : ''}"></i>
+                            <i data-lucide="chevron-down" id="completed-chevron" class="w-4 h-4 chevron ${state.showCompleted ? 'open' : ''}"></i>
                             Completed (<span id="completed-count">${completed.length}</span>)
                         </button>
                         <div id="completed-tasks-wrapper" class="accordion-wrapper ${state.showCompleted && completed.length > 0 ? 'open' : ''}">
@@ -1730,7 +1598,7 @@
                     ${task.subtasks.map((st, idx) => `
                         <div class="flex items-center gap-3">
                             <div class="neo-checkbox w-5 h-5 ${st.completed ? 'checked' : ''}" onclick="toggleSubtask('${task.id}', ${idx})">
-                                ${st.completed ? '<i data-lucide="check" class="w-3 h-3 text-[var(--white)]"></i>' : ''}
+                                ${st.completed ? '<i data-lucide="check" class="w-3 h-3 text-[var(--white)]"></i>' : '<div class="w-2 h-2 rounded-full bg-[rgba(var(--black-rgb),0.2)]"></div>'}
                             </div>
                             <span class="text-sm ${st.completed ? 'line-through opacity-50' : 'font-bold'}">${escapeHTML(st.title)}</span>
                         </div>
@@ -1899,7 +1767,19 @@
 
         function toggleCompletedSection() {
             state.showCompleted = !state.showCompleted;
-            saveStateAndRender();
+            saveStateSilently();
+            
+            const wrapper = document.getElementById('completed-tasks-wrapper');
+            const chevron = document.getElementById('completed-chevron');
+            if (wrapper && chevron) {
+                if (state.showCompleted) {
+                    wrapper.classList.add('open');
+                    chevron.classList.add('open');
+                } else {
+                    wrapper.classList.remove('open');
+                    chevron.classList.remove('open');
+                }
+            }
         }
 
         function readFiles(inputEl) {
@@ -1913,13 +1793,14 @@
             }));
         }
 
-        function openNewTaskMenuRouter() {
+        function openNewTaskMenuRouter(e) {
+            if(e) e.preventDefault();
             if (state.settings.altAddTaskMenu) {
                 if(els.altNewTaskMenu) {
                     els.altNewTaskMenu.classList.remove('translate-y-[120%]');
                     if(els.altNewTaskTitle) {
                         els.altNewTaskTitle.value = '';
-                        setTimeout(() => els.altNewTaskTitle.focus(), 10); // Instant Focus
+                        els.altNewTaskTitle.focus();
                     }
                 }
             } else {
@@ -2039,7 +1920,8 @@
             }
         }
 
-        function addList() {
+        function addList(e) {
+            if(e) e.preventDefault();
             if(!els.newListInput) return;
             const listName = els.newListInput.value.trim();
             if (listName) {
@@ -2201,12 +2083,10 @@
             
             if(els.newTaskScreen) els.newTaskScreen.classList.add('open');
             
-            // Instant focus for mobile keyboards
-            setTimeout(()=> { 
-                if(els.newTaskTitle) {
-                    els.newTaskTitle.focus(); 
-                }
-            }, 10);
+            // Synchronous Focus
+            if(els.newTaskTitle) {
+                els.newTaskTitle.focus(); 
+            }
         }
 
         function closeNewTaskScreen() { if(els.newTaskScreen) els.newTaskScreen.classList.remove('open'); }
@@ -2306,7 +2186,7 @@
         let listSwipe = { startX: 0, startY: 0 };
         if (els.mainViewArea) {
             els.mainViewArea.addEventListener('touchstart', e => {
-                if(e.target.closest('[id^="swipe-wrapper-"]')) return; // Ignore if swiping a task
+                if(e.target.closest('[id^="swipe-wrapper-"]')) return;
                 listSwipe.startX = e.touches[0].clientX;
                 listSwipe.startY = e.touches[0].clientY;
             }, {passive: true});
@@ -2316,13 +2196,12 @@
                 const diffX = listSwipe.startX - e.changedTouches[0].clientX;
                 const diffY = Math.abs(listSwipe.startY - e.changedTouches[0].clientY);
                 
-                // If strong horizontal swipe and not much vertical scroll
                 if (Math.abs(diffX) > 80 && diffY < 50) {
                     const allLists = ['important', ...state.lists.map(l => l.id)];
                     let currentIndex = allLists.indexOf(state.activeListId);
                     if(currentIndex === -1) currentIndex = 1;
                     
-                    let newIndex = diffX > 0 ? currentIndex + 1 : currentIndex - 1; // Left swipe = next, Right swipe = prev
+                    let newIndex = diffX > 0 ? currentIndex + 1 : currentIndex - 1; 
                     if (newIndex < 0) newIndex = allLists.length - 1;
                     if (newIndex >= allLists.length) newIndex = 0;
                     
@@ -2406,6 +2285,7 @@
         function openSettingsScreen() {
             if(els.settingsScreen) els.settingsScreen.classList.add('open');
             const st = document.getElementById('setting-theme'); if(st) st.value = state.settings.theme;
+            const sa = document.getElementById('setting-accent'); if(sa) sa.value = state.settings.accent || 'default';
             const sf = document.getElementById('setting-font'); if(sf) sf.value = state.settings.font;
             const sd = document.getElementById('setting-density'); if(sd) sd.value = state.settings.density || 'comfortable';
             
@@ -2513,25 +2393,6 @@
                 saveStateAndRender(); 
                 showToast("Push notifications disabled.");
             }
-        }
-
-        async function toggleKeepAwake() {
-            state.settings.keepAwake = !state.settings.keepAwake;
-            const toggle = document.getElementById('setting-keep-awake');
-            if (state.settings.keepAwake) {
-                if(toggle) toggle.classList.add('checked');
-                await requestWakeLock();
-            } else {
-                if(toggle) toggle.classList.remove('checked');
-                releaseWakeLock();
-            }
-            saveStateAndRender();
-        }
-
-        function updateSettings(key, value) {
-            state.settings[key] = value;
-            applySettings();
-            saveStateAndRender();
         }
 
         function applySettings() {
@@ -2658,13 +2519,17 @@
 
         function updateAuthUI() {
             const form = document.getElementById('auth-form'); const loggedInView = document.getElementById('logged-in-view'); const status = document.getElementById('auth-status');
+            const loginBanner = document.getElementById('login-sync-banner');
+            
             if(form && loggedInView && status) {
                 if (state.auth.token) {
                     form.classList.add('hidden'); loggedInView.classList.remove('hidden');
                     status.textContent = `Logged in as: ${state.auth.username}`; status.classList.add('text-green-500');
+                    if(loginBanner) loginBanner.classList.add('hidden');
                 } else {
                     form.classList.remove('hidden'); loggedInView.classList.add('hidden');
                     status.textContent = "Not logged in. Data is stored locally."; status.classList.remove('text-green-500');
+                    if(loginBanner) loginBanner.classList.remove('hidden');
                 }
             }
         }
@@ -2731,10 +2596,12 @@
         // --- Init & Listeners ---
         function escapeHTML(str) { const p = document.createElement('p'); p.appendChild(document.createTextNode(str)); return p.innerHTML; }
 
-        window.addEventListener('click', (e) => {
+        window.addEventListener('pointerdown', (e) => {
             const altMenu = document.getElementById('alt-new-task-menu');
-            if (altMenu && !altMenu.classList.contains('translate-y-[120%]') && !e.target.closest('#alt-new-task-menu') && !e.target.closest('#fab-add-task')) {
-                closeAltTaskMenu();
+            if (altMenu && !altMenu.classList.contains('translate-y-[120%]')) {
+                if (!e.target.closest('#alt-new-task-menu') && !e.target.closest('#fab-add-task')) {
+                    closeAltTaskMenu();
+                }
             }
 
             if (e.target === els.editModal) closeEditModal();
@@ -2746,22 +2613,32 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('SW setup successful'))
-                    .catch(err => console.error('SW setup failed', err));
+                try {
+                    if (window.location.protocol.startsWith('http')) {
+                        navigator.serviceWorker.register('sw.js')
+                            .then(reg => console.log('SW setup successful'))
+                            .catch(err => console.error('SW setup failed', err));
+                    }
+                } catch (e) {
+                    console.log('Service Worker registration skipped (sandboxed environment).');
+                }
             });
         }
 
         // App Boot
+        document.body.classList.add('app-loaded');
         loadLocalState();
         applySettings(); 
         
-        // Setup initial Wake Lock check if setting is on
         if (state.settings.keepAwake && document.visibilityState === 'visible') { requestWakeLock(); }
         
         render();        
         
-        if (!state.auth.token) { setTimeout(showAuthToast, 2000); } 
+        if (!state.auth.token) { 
+            setTimeout(() => {
+                updateAuthUI();
+            }, 1000); 
+        } 
         else { pullData(true); }
 
     </script>
