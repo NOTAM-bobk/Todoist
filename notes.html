@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Notes & Doodles</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --paper: #fdf8ed;
+            --ink: #2f2419;
+            --accent: #d97757;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: linear-gradient(145deg, #fdf8ed 0%, #fef4e3 100%);
+            font-family: 'Kalam', cursive;
+            color: var(--ink);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* Subtle paper texture */
+        body::before {
+            content: ""; position: fixed; inset: 0;
+            background-image: radial-gradient(#e0d6c0 1px, transparent 1px);
+            background-size: 24px 24px; opacity: 0.2; pointer-events: none; z-index: -1;
+        }
+
+        .sketch-border {
+            border: 2px solid #3f2d1b;
+            border-radius: 20px 8px 24px 12px;
+            box-shadow: 4px 6px 0 rgba(0, 0, 0, 0.06);
+        }
+        
+        .sketch-input {
+            background: transparent; outline: none; border: none;
+            color: var(--ink); width: 100%;
+        }
+
+        .sketch-btn {
+            background: #fffaf2; border: 2px solid #3f2d1b;
+            border-radius: 12px 6px 14px 8px; font-weight: bold;
+            cursor: pointer; transition: all 0.2s ease;
+            box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.05);
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.5rem 1rem;
+        }
+        .sketch-btn:hover { transform: translateY(-2px); box-shadow: 3px 6px 0 rgba(0, 0, 0, 0.08); }
+        .sketch-btn:active { transform: translateY(0); box-shadow: 1px 2px 0 rgba(0, 0, 0, 0.05); }
+
+        .note-item {
+            padding: 0.75rem 1rem; border-bottom: 2px dashed rgba(63, 45, 27, 0.2);
+            cursor: pointer; transition: background 0.2s;
+        }
+        .note-item:hover { background: rgba(0,0,0,0.02); }
+        .note-item.active { background: rgba(0,0,0,0.05); font-weight: bold; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0, 0.2); border-radius: 4px; }
+        
+        #drawing-canvas {
+            touch-action: none; /* Prevent scroll while drawing on mobile */
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar: Notes List -->
+    <aside class="w-64 sm:w-80 border-r-2 border-[var(--ink)] flex flex-col bg-[rgba(255,255,255,0.3)] backdrop-blur-sm z-10 shrink-0">
+        <div class="p-6 border-b-2 border-[var(--ink)] flex justify-between items-center">
+            <h1 class="text-2xl font-bold">My Notes</h1>
+            <button class="sketch-btn px-3" onclick="createNewNote()" title="New Note"><i data-lucide="plus"></i></button>
+        </div>
+        <div class="flex-1 overflow-y-auto" id="notes-list">
+            <!-- Notes injected via JS -->
+        </div>
+        <div class="p-4 border-t-2 border-[var(--ink)] text-center">
+            <a href="index.html" class="sketch-btn w-full justify-center text-sm"><i data-lucide="arrow-left"></i> Back to Tasks</a>
+        </div>
+    </aside>
+
+    <!-- Main Editor -->
+    <main class="flex-1 flex flex-col relative">
+        <!-- Editor Header -->
+        <header class="p-6 border-b-2 border-[var(--ink)] flex justify-between items-center gap-4 bg-[rgba(255,255,255,0.3)]">
+            <input type="text" id="note-title" class="sketch-input text-3xl font-bold flex-1" placeholder="Untitled Note" oninput="saveCurrentNote()">
+            <div class="flex gap-3">
+                <button id="draw-mode-btn" class="sketch-btn" onclick="toggleDrawMode()"><i data-lucide="pen-tool"></i> Draw</button>
+                <button class="sketch-btn text-red-600" onclick="deleteCurrentNote()"><i data-lucide="trash-2"></i></button>
+            </div>
+        </header>
+
+        <!-- Editor Workspace (Stacking Text and Canvas) -->
+        <div class="flex-1 relative overflow-hidden bg-transparent">
+            <!-- Text Layer -->
+            <textarea id="note-text" class="sketch-input absolute inset-0 p-6 text-xl resize-none leading-relaxed" style="background: repeating-linear-gradient(transparent, transparent 31px, rgba(0,0,0,0.05) 31px, rgba(0,0,0,0.05) 32px);" placeholder="Start typing here..." oninput="saveCurrentNote()"></textarea>
+            
+            <!-- Drawing Canvas Layer (Hidden by default) -->
+            <div id="canvas-container" class="absolute inset-0 z-20 hidden bg-[rgba(253,248,237,0.9)] backdrop-blur-sm flex flex-col">
+                <div class="flex gap-4 p-4 border-b-2 border-dashed border-[var(--ink)] shrink-0 justify-center items-center">
+                    <button class="sketch-btn bg-black text-white" onclick="changeColor('#000000')">Black</button>
+                    <button class="sketch-btn text-[#d97757]" onclick="changeColor('#d97757')">Red</button>
+                    <button class="sketch-btn text-blue-600" onclick="changeColor('#2563eb')">Blue</button>
+                    <div class="w-px h-6 bg-[var(--ink)] opacity-20"></div>
+                    <button class="sketch-btn" onclick="clearCanvas()"><i data-lucide="eraser"></i> Clear</button>
+                    <button class="sketch-btn" onclick="toggleDrawMode()"><i data-lucide="x"></i> Done</button>
+                </div>
+                <canvas id="drawing-canvas" class="flex-1 w-full"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Sync Indicator -->
+    <div id="sync-status" class="fixed bottom-4 right-4 text-xs font-bold opacity-50 flex items-center gap-1 transition-opacity">
+        <i data-lucide="cloud-check" class="w-4 h-4"></i> Saved
+    </div>
+
+    <script>
+        // --- State ---
+        const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
+        const API_URL = 'https://neo-tasks-backend.sawyerbobk563.workers.dev'; 
+
+        let state = {
+            notes: [],
+            activeNoteId: null
+        };
+        let authToken = null;
+        let isDrawMode = false;
+
+        // --- DOM ---
+        const els = {
+            list: document.getElementById('notes-list'),
+            title: document.getElementById('note-title'),
+            text: document.getElementById('note-text'),
+            drawBtn: document.getElementById('draw-mode-btn'),
+            canvasCont: document.getElementById('canvas-container'),
+            canvas: document.getElementById('drawing-canvas'),
+            syncStatus: document.getElementById('sync-status')
+        };
+        const ctx = els.canvas.getContext('2d');
+
+        // --- App Boot ---
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i=0;i < ca.length;i++) {
+                let c = ca[i];
+                while (c.charAt(0)==' ') c = c.substring(1,c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+            }
+            return null;
+        }
+
+        function init() {
+            lucide.createIcons();
+            authToken = getCookie('auth_token');
+            
+            // Load local
+            const saved = localStorage.getItem('neo-notes-state');
+            if (saved) {
+                state = JSON.parse(saved);
+            }
+
+            if (state.notes.length === 0) {
+                createNewNote();
+            } else {
+                if(!state.activeNoteId) state.activeNoteId = state.notes[0].id;
+                renderList();
+                loadActiveNote();
+            }
+
+            initCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // Pull cloud data
+            if(authToken) pullNotes();
+        }
+
+        // --- Core Logic ---
+        function createNewNote() {
+            const newNote = {
+                id: generateId(),
+                title: '',
+                content: '',
+                drawingBase64: null,
+                updatedAt: Date.now()
+            };
+            state.notes.unshift(newNote);
+            state.activeNoteId = newNote.id;
+            isDrawMode = false;
+            els.canvasCont.classList.add('hidden');
+            
+            renderList();
+            loadActiveNote();
+            els.title.focus();
+            saveStateAndSync();
+        }
+
+        function renderList() {
+            els.list.innerHTML = state.notes.map(n => `
+                <div class="note-item flex flex-col ${n.id === state.activeNoteId ? 'active' : ''}" onclick="selectNote('${n.id}')">
+                    <span class="font-bold truncate">${n.title || 'Untitled Note'}</span>
+                    <span class="text-xs opacity-50 truncate">${n.content ? n.content.substring(0,30)+'...' : 'No text...'}</span>
+                </div>
+            `).join('');
+        }
+
+        function selectNote(id) {
+            state.activeNoteId = id;
+            isDrawMode = false;
+            els.canvasCont.classList.add('hidden');
+            renderList();
+            loadActiveNote();
+        }
+
+        function loadActiveNote() {
+            const note = state.notes.find(n => n.id === state.activeNoteId);
+            if (note) {
+                els.title.value = note.title;
+                els.text.value = note.content;
+                
+                // Load drawing
+                ctx.clearRect(0, 0, els.canvas.width, els.canvas.height);
+                if (note.drawingBase64) {
+                    const img = new Image();
+                    img.onload = () => ctx.drawImage(img, 0, 0);
+                    img.src = note.drawingBase64;
+                }
+            } else {
+                els.title.value = '';
+                els.text.value = '';
+            }
+        }
+
+        function saveCurrentNote() {
+            const note = state.notes.find(n => n.id === state.activeNoteId);
+            if (note) {
+                note.title = els.title.value;
+                note.content = els.text.value;
+                note.updatedAt = Date.now();
+                renderList(); // Update sidebar instantly
+                debouncedSave();
+            }
+        }
+
+        function deleteCurrentNote() {
+            if(confirm("Delete this note?")) {
+                state.notes = state.notes.filter(n => n.id !== state.activeNoteId);
+                if (state.notes.length > 0) {
+                    selectNote(state.notes[0].id);
+                } else {
+                    createNewNote();
+                }
+                saveStateAndSync();
+            }
+        }
+
+        // --- Canvas Drawing Logic ---
+        let isDrawing = false;
+        let currentColor = '#2f2419';
+
+        function toggleDrawMode() {
+            isDrawMode = !isDrawMode;
+            if (isDrawMode) {
+                els.canvasCont.classList.remove('hidden');
+                resizeCanvas();
+                loadActiveNote(); // Redraw image onto correct canvas size
+            } else {
+                els.canvasCont.classList.add('hidden');
+                // Save canvas to state when exiting
+                const note = state.notes.find(n => n.id === state.activeNoteId);
+                if (note) {
+                    note.drawingBase64 = els.canvas.toDataURL();
+                    saveStateAndSync();
+                }
+            }
+        }
+
+        function resizeCanvas() {
+            // Match container size
+            els.canvas.width = els.canvasCont.clientWidth;
+            els.canvas.height = els.canvasCont.clientHeight - 70; // Minus toolbar
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 4;
+        }
+
+        function initCanvas() {
+            const getPos = (e) => {
+                const rect = els.canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: clientX - rect.left, y: clientY - rect.top };
+            };
+
+            const start = (e) => {
+                isDrawing = true;
+                const {x, y} = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                e.preventDefault(); // Stop scrolling
+            };
+
+            const draw = (e) => {
+                if (!isDrawing) return;
+                const {x, y} = getPos(e);
+                ctx.strokeStyle = currentColor;
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                e.preventDefault();
+            };
+
+            const stop = () => {
+                if(isDrawing) {
+                    isDrawing = false;
+                    ctx.closePath();
+                }
+            };
+
+            els.canvas.addEventListener('mousedown', start);
+            els.canvas.addEventListener('mousemove', draw);
+            els.canvas.addEventListener('mouseup', stop);
+            els.canvas.addEventListener('mouseout', stop);
+
+            els.canvas.addEventListener('touchstart', start, {passive: false});
+            els.canvas.addEventListener('touchmove', draw, {passive: false});
+            els.canvas.addEventListener('touchend', stop);
+        }
+
+        function changeColor(hex) { currentColor = hex; }
+        function clearCanvas() {
+            ctx.clearRect(0, 0, els.canvas.width, els.canvas.height);
+        }
+
+        // --- Storage & Cloudflare Sync ---
+        let syncTimer = null;
+        function debouncedSave() {
+            clearTimeout(syncTimer);
+            syncTimer = setTimeout(() => { saveStateAndSync(); }, 1500);
+        }
+
+        function saveStateAndSync() {
+            localStorage.setItem('neo-notes-state', JSON.stringify(state));
+            if(authToken) pushNotes();
+        }
+
+        function showSyncStatus(type) {
+            if(type === 'syncing') els.syncStatus.innerHTML = '<i data-lucide="loader" class="w-3 h-3 animate-spin"></i> Syncing...';
+            if(type === 'saved') els.syncStatus.innerHTML = '<i data-lucide="cloud-check" class="w-3 h-3 text-green-600"></i> Saved to Cloud';
+            if(type === 'error') els.syncStatus.innerHTML = '<i data-lucide="alert-circle" class="w-3 h-3 text-red-600"></i> Offline';
+            lucide.createIcons();
+            els.syncStatus.style.opacity = 1;
+            setTimeout(() => els.syncStatus.style.opacity = 0.5, 3000);
+        }
+
+        async function pullNotes() {
+            showSyncStatus('syncing');
+            try {
+                // To activate, you'll add the /api/notes-sync GET block to your worker.
+                const response = await fetch(`${API_URL}/api/notes-sync`, { method: 'GET', headers: { 'Authorization': `Bearer ${authToken}` }});
+                const data = await response.json();
+                if (data.success && data.serverData && data.serverData.notes.length > 0) {
+                    state.notes = data.serverData.notes;
+                    if(!state.notes.find(n => n.id === state.activeNoteId)) state.activeListId = state.notes[0].id;
+                    renderList();
+                    loadActiveNote();
+                    showSyncStatus('saved');
+                }
+            } catch (err) { showSyncStatus('error'); }
+        }
+
+        async function pushNotes() {
+            showSyncStatus('syncing');
+            try {
+                // To activate, you'll add the /api/notes-sync POST block to your worker.
+                const response = await fetch(`${API_URL}/api/notes-sync`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ notes: state.notes })
+                });
+                if(response.ok) showSyncStatus('saved');
+                else showSyncStatus('error');
+            } catch (err) { showSyncStatus('error'); }
+        }
+
+        // Start
+        init();
+
+    </script>
+</body>
+</html>
