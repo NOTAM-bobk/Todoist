@@ -361,6 +361,9 @@
             border-color: var(--accent);
             box-shadow: 0 4px 10px rgba(var(--accent-rgb), 0.3);
         }
+        .list-item.active:hover {
+            color: var(--white); /* Fixes disappearing text bug on tap */
+        }
         .list-item.active i { color: var(--white) !important; }
         
         .list-badge {
@@ -1068,6 +1071,13 @@
         
         <div class="p-6 space-y-8 overflow-y-auto flex-1 bg-transparent max-w-4xl w-full mx-auto pb-12 pl-20 sm:pl-6">
             
+            <!-- PWA Install Prompt (Hidden by default) -->
+            <div id="install-pwa-container" class="neo-border p-5 bg-[rgba(var(--accent-rgb),0.1)] rounded-xl hidden">
+                <h3 class="text-lg font-black uppercase mb-4 border-b border-[rgba(var(--black-rgb),0.1)] pb-2 flex items-center gap-2"><i data-lucide="download"></i> Install App</h3>
+                <p class="text-sm font-bold opacity-70 mb-4">Install Neo Tasks to your device for a full-screen, offline experience.</p>
+                <button class="neo-btn primary w-full py-2" onclick="installPWA()">Install Neo Tasks</button>
+            </div>
+
             <!-- Lifetime Totals -->
             <div class="grid grid-cols-2 gap-4">
                 <div class="neo-border p-4 bg-[rgba(var(--black-rgb),0.02)] text-center rounded-xl">
@@ -1889,18 +1899,7 @@
 
         function toggleCompletedSection() {
             state.showCompleted = !state.showCompleted;
-            const wrapper = document.getElementById('completed-tasks-wrapper');
-            const chevron = document.getElementById('completed-chevron');
-            if (wrapper && chevron) {
-                if (state.showCompleted) {
-                    wrapper.classList.add('open');
-                    chevron.classList.add('open');
-                } else {
-                    wrapper.classList.remove('open');
-                    chevron.classList.remove('open');
-                }
-            }
-            saveStateSilently();
+            saveStateAndRender();
         }
 
         function readFiles(inputEl) {
@@ -2303,6 +2302,35 @@
             }, {passive: true});
         }
 
+        // --- Swipe to Switch Lists ---
+        let listSwipe = { startX: 0, startY: 0 };
+        if (els.mainViewArea) {
+            els.mainViewArea.addEventListener('touchstart', e => {
+                if(e.target.closest('[id^="swipe-wrapper-"]')) return; // Ignore if swiping a task
+                listSwipe.startX = e.touches[0].clientX;
+                listSwipe.startY = e.touches[0].clientY;
+            }, {passive: true});
+            
+            els.mainViewArea.addEventListener('touchend', e => {
+                if(e.target.closest('[id^="swipe-wrapper-"]')) return;
+                const diffX = listSwipe.startX - e.changedTouches[0].clientX;
+                const diffY = Math.abs(listSwipe.startY - e.changedTouches[0].clientY);
+                
+                // If strong horizontal swipe and not much vertical scroll
+                if (Math.abs(diffX) > 80 && diffY < 50) {
+                    const allLists = ['important', ...state.lists.map(l => l.id)];
+                    let currentIndex = allLists.indexOf(state.activeListId);
+                    if(currentIndex === -1) currentIndex = 1;
+                    
+                    let newIndex = diffX > 0 ? currentIndex + 1 : currentIndex - 1; // Left swipe = next, Right swipe = prev
+                    if (newIndex < 0) newIndex = allLists.length - 1;
+                    if (newIndex >= allLists.length) newIndex = 0;
+                    
+                    setActiveList(allLists[newIndex]);
+                }
+            }, {passive: true});
+        }
+
         // --- Modals ---
         function openEditModal(taskId) {
             state.editingTaskId = taskId;
@@ -2487,11 +2515,35 @@
             }
         }
 
+        async function toggleKeepAwake() {
+            state.settings.keepAwake = !state.settings.keepAwake;
+            const toggle = document.getElementById('setting-keep-awake');
+            if (state.settings.keepAwake) {
+                if(toggle) toggle.classList.add('checked');
+                await requestWakeLock();
+            } else {
+                if(toggle) toggle.classList.remove('checked');
+                releaseWakeLock();
+            }
+            saveStateAndRender();
+        }
+
+        function updateSettings(key, value) {
+            state.settings[key] = value;
+            applySettings();
+            saveStateAndRender();
+        }
+
         function applySettings() {
             document.body.classList.remove('theme-dark', 'theme-claude');
             if (state.settings.theme === 'dark') document.body.classList.add('theme-dark');
             else if (state.settings.theme === 'claude') document.body.classList.add('theme-claude');
             
+            document.body.classList.remove('accent-blue', 'accent-emerald', 'accent-rose');
+            if (state.settings.accent && state.settings.accent !== 'default') {
+                document.body.classList.add(`accent-${state.settings.accent}`);
+            }
+
             if (state.settings.customAccent) {
                 const rgb = hexToRgb(state.settings.customAccent);
                 if (rgb) {
@@ -2512,6 +2564,26 @@
             if (state.settings.showTaskCounts === false) document.body.classList.add('hide-task-counts');
             
             document.documentElement.style.setProperty('--font-family', state.settings.font);
+        }
+
+        // --- PWA Installation ---
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const container = document.getElementById('install-pwa-container');
+            if (container) container.classList.remove('hidden');
+        });
+
+        async function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('install-pwa-container').classList.add('hidden');
+                }
+                deferredPrompt = null;
+            }
         }
 
         // --- Keyboard Shortcuts ---
