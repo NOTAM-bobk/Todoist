@@ -748,7 +748,7 @@
                 <i class="fas fa-bell"></i>
                 <span class="item-text">Reminders</span>
             </a>
-            <a href="#" class="menu-item voice-memo" onclick="showToast('Voice Memos coming soon to GitHub repo!'); document.getElementById('menu-checkbox').checked = false; event.preventDefault();">
+            <a href="voice-memos.html" class="menu-item voice-memo">
                 <i class="fas fa-microphone-alt"></i>
                 <span class="item-text">Voice Memo</span>
             </a>
@@ -1334,7 +1334,7 @@
 
         // --- State Management & Storage ---
         const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
-        const API_URL = 'https://neo-tasks-backend.sawyerbobk563.workers.dev'; 
+        const API_URL = 'https://neo-tasks-backend-2.sawyerbobk563.workers.dev'; 
         const VERCEL_PUSH_URL = '/api/push'; 
 
         let state = {
