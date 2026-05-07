@@ -1,49 +1,42 @@
-Step 1: Prepare your GitHub Repository
+# ✅ Neo Tasks
 
-Make sure your GitHub repository has exactly these three files:
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?logo=vercel)](https://vercel.com)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-index.html (in the main folder)
+A modern, feature-rich task manager with **Push Notifications**, **Reminders**, and **Notes**.  
+> **Note:** This is the active version. The old URL link is deprecated — please use the [Vercel deployment](#-live-demo) below.
 
-package.json (in the main folder, using the code I provided above)
+![Neo Tasks Screenshot](image_bd669a.png)
 
-push.js (inside a folder named api)
+## ✨ Live Demo
 
-Step 2: Get Your VAPID Keys (Safely in the browser)
+👉 **[View the Live Application](https://neo-task.edgeone.app/)** 👈
 
-Since you don't have a terminal, you can use a safe online generator made by the Google Chrome team.
+## 🚀 Features
 
-Go to this website: Web Push Codelab Key Generator https://web-push-codelab.glitch.me/  
+- 📋 **Task Management** - Create, edit, and organize your daily tasks.
+- ⏰ **Reminders** - Set due dates and receive browser notifications.
+- 📝 **Notes** - Keep additional information alongside your tasks.
+- 🔔 **Push Notifications** - Real-time alerts (requires VAPID keys setup).
+- 💾 **Persistent Storage** - Your data saves locally and syncs seamlessly.
+- 📱 **Responsive Design** - Works on desktop, tablet, and mobile.
 
-You will instantly see a Public Key and a Private Key. Keep this page open!
+## 🛠️ Tech Stack
 
-Important: Go into your index.html code on GitHub, scroll down to the setupVercelPush() function, and replace the long publicVapidKey string with the new Public Key you just generated. Save/commit that change to GitHub.
+| Area | Technology |
+|------|-------------|
+| Frontend | HTML5, CSS3, JavaScript |
+| Notifications | Web Push API, VAPID keys |
+| Service Worker | Native `sw.js`, `worker.js` |
+| Hosting | Vercel (primary) |
+| Backend APIs | Cloudflare Workers (`wrangler.toml`) |
 
-Step 3: Import and Configure in Vercel
+## 🧑‍💻 Local Development
 
-Log into your Vercel Dashboard and click Add New... -> Project.
+To run this project locally:
 
-Connect your GitHub account and click Import next to your Neo Tasks repository.
-
-You will see a "Configure Project" screen. Wait! Don't click Deploy yet!
-
-Scroll down and click to expand the Environment Variables section.
-
-Add the Public Key:
-
-Key: type exactly NEXT_PUBLIC_VAPID_KEY
-
-Value: paste your Public Key from the generator.
-
-Click Add.
-
-Add the Private Key:
-
-Key: type exactly VAPID_PRIVATE_KEY
-
-Value: paste your Private Key from the generator.
-
-Click Add.
-
-Step 4: Deploy
-
-Now click the big Deploy button! Vercel will automatically read your package.json, install the web-push library, securely load your hidden VAPID keys, and launch your website!
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/NOTAM-bobk/Todoist.git
+   cd Todoist
