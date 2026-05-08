@@ -4,16 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Reminders | Handdrawn</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
+
     <style>
         :root {
             --ink: #2f2419;
-            --accent: #f3b3a2; /* Reminders Peach Accent */
+            --accent: #f3b3a2;
             --bg-color: #fdf8ed;
         }
 
@@ -28,7 +27,6 @@
             display: flex;
         }
 
-        /* Subtle paper texture */
         body::before {
             content: ""; position: fixed; inset: 0;
             background-image: radial-gradient(#e0d6c0 1px, transparent 1px);
@@ -36,54 +34,91 @@
         }
 
         .sketch-input {
-            background: rgba(255,255,255,0.4); 
+            background: rgba(255,255,255,0.4);
             border: 2px solid #3f2d1b;
             border-radius: 12px 6px 14px 8px;
-            color: var(--ink); 
+            color: var(--ink);
             width: 100%;
             padding: 0.75rem 1rem;
             outline: none;
-            box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.05);
+            box-shadow: 2px 3px 0 rgba(0,0,0,0.05);
             transition: all 0.2s ease;
+            font-family: 'Kalam', cursive;
         }
         .sketch-input:focus {
-            box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.08);
+            box-shadow: 3px 5px 0 rgba(0,0,0,0.08);
             transform: translate(-1px, -1px);
         }
+        .sketch-input::placeholder { opacity: 0.45; }
 
         .sketch-btn {
             background: #fffaf2; border: 2px solid #3f2d1b;
             border-radius: 12px 6px 14px 8px; font-weight: bold;
             cursor: pointer; transition: all 0.2s ease;
-            box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.05);
+            box-shadow: 3px 4px 0 rgba(0,0,0,0.05);
             display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 1rem; font-family: 'Kalam', cursive;
         }
-        .sketch-btn.primary {
-            background: var(--accent);
-            color: var(--ink);
-        }
-        .sketch-btn:hover { transform: translateY(-2px); box-shadow: 3px 6px 0 rgba(0, 0, 0, 0.08); }
-        .sketch-btn:active { transform: translateY(0); box-shadow: 1px 2px 0 rgba(0, 0, 0, 0.05); }
+        .sketch-btn.primary { background: var(--accent); color: var(--ink); }
+        .sketch-btn:hover { transform: translateY(-2px); box-shadow: 3px 6px 0 rgba(0,0,0,0.08); }
+        .sketch-btn:active { transform: translateY(0); box-shadow: 1px 2px 0 rgba(0,0,0,0.05); }
 
+        /* Priority badges */
+        .badge {
+            display: inline-flex; align-items: center; gap: 3px;
+            padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; border: 1.5px solid;
+        }
+        .badge-low    { background: #e8f5e9; color: #388e3c; border-color: #388e3c; }
+        .badge-medium { background: #fff8e1; color: #f57f17; border-color: #f57f17; }
+        .badge-high   { background: #fce4ec; color: #c62828; border-color: #c62828; }
+        .badge-urgent { background: #ff1744; color: #fff; border-color: #b71c1c; }
+
+        /* Reminder list item */
         .reminder-item {
-            padding: 1rem; border-bottom: 2px dashed rgba(63, 45, 27, 0.2);
+            padding: 0.85rem 1rem;
+            border-bottom: 2px dashed rgba(63,45,27,0.2);
             cursor: pointer; transition: background 0.2s;
-            display: flex; flex-direction: column; gap: 0.25rem;
+            display: flex; gap: 0.6rem; align-items: flex-start;
+            position: relative; overflow: hidden;
+            -webkit-user-select: none; user-select: none;
         }
         .reminder-item:hover { background: rgba(0,0,0,0.02); }
-        .reminder-item.active { background: rgba(0,0,0,0.05); }
-        .reminder-item.expired { opacity: 0.5; }
+        .reminder-item.active { background: rgba(243,179,162,0.18); }
+        .reminder-item.expired .item-title,
+        .reminder-item.expired .item-meta { opacity: 0.45; }
+        .reminder-item.done .item-title { text-decoration: line-through; opacity: 0.5; }
 
-        /* Custom Scrollbar */
+        .check-circle {
+            width: 22px; height: 22px; border-radius: 50%;
+            border: 2.5px solid #3f2d1b; background: transparent;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; margin-top: 2px; transition: all 0.2s; cursor: pointer;
+        }
+        .check-circle.checked { background: var(--accent); border-color: var(--accent); }
+        .check-circle svg { display: none; }
+        .check-circle.checked svg { display: block; }
+
+        .item-body { flex: 1; min-width: 0; }
+        .item-title { font-weight: bold; font-size: 1rem; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .item-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin-top: 3px; font-size: 0.72rem; font-weight: bold; opacity: 0.65; }
+
+        /* Delete swipe reveal */
+        .swipe-delete-btn {
+            position: absolute; right: 0; top: 0; bottom: 0;
+            width: 70px; background: #e53935; color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; transform: translateX(100%);
+            transition: transform 0.25s; cursor: pointer; border: none;
+        }
+
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(0,0,0, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
 
-        /* Toggle Switch */
+        /* Toggle */
         .sketch-toggle {
             width: 44px; height: 24px;
-            background: rgba(0,0,0, 0.1);
+            background: rgba(0,0,0,0.1);
             border-radius: 12px; position: relative; cursor: pointer;
             transition: background 0.3s; flex-shrink: 0;
             border: 2px solid var(--ink);
@@ -91,13 +126,28 @@
         .sketch-toggle::after {
             content: ''; position: absolute; top: 1px; left: 1px;
             width: 18px; height: 18px; background: #fffaf2; border-radius: 50%;
-            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
             border: 2px solid var(--ink);
         }
         .sketch-toggle.checked { background: var(--accent); }
         .sketch-toggle.checked::after { transform: translateX(20px); }
 
-        /* --- Handdrawn Side Menu Styles --- */
+        /* Segment control for repeat/priority */
+        .seg-ctrl { display: flex; border: 2px solid #3f2d1b; border-radius: 10px 6px 12px 6px; overflow: hidden; }
+        .seg-ctrl label {
+            flex: 1; text-align: center; padding: 6px 4px; font-size: 0.78rem; font-weight: bold;
+            cursor: pointer; transition: background 0.15s; border-right: 1.5px solid #3f2d1b;
+        }
+        .seg-ctrl label:last-child { border-right: none; }
+        .seg-ctrl input[type=radio] { display: none; }
+        .seg-ctrl input[type=radio]:checked + label { background: var(--accent); }
+
+        /* Search bar */
+        .search-wrap { position: relative; }
+        .search-wrap .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.4; pointer-events: none; }
+        .search-wrap input { padding-left: 2.2rem; font-size: 0.9rem; }
+
+        /* Side nav (unchanged from original) */
         .hand-menu {
             position: fixed; left: 0; top: 50%; transform: translateY(-50%);
             width: 80px; z-index: 90; display: flex; flex-direction: column;
@@ -106,420 +156,717 @@
         .menu-toggle {
             position: relative; width: 72px; height: 72px;
             background: #fff9ef; border-radius: 40px 12px 40px 12px; border: 3px solid #3a2c1f;
-            box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.08), inset 0 1px 4px rgba(255, 255, 200, 0.8);
+            box-shadow: 6px 8px 0 rgba(0,0,0,0.08), inset 0 1px 4px rgba(255,255,200,0.8);
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             transition: all 0.2s ease; z-index: 10; pointer-events: auto;
         }
-        .menu-toggle:hover { transform: scale(0.97); background: #fff3e0; box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.08); }
+        .menu-toggle:hover { transform: scale(0.97); background: #fff3e0; box-shadow: 3px 4px 0 rgba(0,0,0,0.08); }
         .burger-icon { display: flex; flex-direction: column; gap: 8px; width: 32px; }
         .burger-icon span { display: block; height: 4px; background: #4e3b28; border-radius: 20px; transition: all 0.25s; }
         .burger-icon span:first-child { width: 28px; }
         .burger-icon span:nth-child(2) { width: 32px; }
         .burger-icon span:last-child { width: 24px; }
-        
-        #menu-checkbox:checked + .menu-toggle .burger-icon span:first-child { transform: rotate(40deg) translate(6px, 8px); width: 28px; }
+        #menu-checkbox:checked + .menu-toggle .burger-icon span:first-child { transform: rotate(40deg) translate(6px,8px); width: 28px; }
         #menu-checkbox:checked + .menu-toggle .burger-icon span:nth-child(2) { opacity: 0; transform: scaleX(0); }
-        #menu-checkbox:checked + .menu-toggle .burger-icon span:last-child { transform: rotate(-40deg) translate(5px, -8px); width: 28px; }
-
+        #menu-checkbox:checked + .menu-toggle .burger-icon span:last-child { transform: rotate(-40deg) translate(5px,-8px); width: 28px; }
         .menu-items-container {
             position: absolute; left: 86px; top: 50%; transform: translateY(-50%);
             display: flex; flex-direction: column; gap: 18px; pointer-events: none;
         }
         .menu-items-container::before {
             content: ''; position: absolute; top: -30px; bottom: -30px; left: -30px; right: -50px;
-            background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(16px);
+            background: rgba(255,255,255,0.5); backdrop-filter: blur(16px);
             border-radius: 40px; z-index: -1; opacity: 0; transition: opacity 0.38s; pointer-events: none;
         }
         #menu-checkbox:checked ~ .menu-items-container::before { opacity: 1; }
-
         .menu-item {
             display: flex; align-items: center; gap: 14px; background: #fffaf2;
             padding: 8px 18px 8px 16px; border-radius: 60px 20px 60px 20px;
-            border: 2.5px solid #3f2d1b; box-shadow: 5px 6px 0 rgba(0, 0, 0, 0.06);
+            border: 2.5px solid #3f2d1b; box-shadow: 5px 6px 0 rgba(0,0,0,0.06);
             text-decoration: none; font-weight: 600; font-size: 1.4rem; color: #2f2419;
             transition: transform 0.3s ease, opacity 0.2s ease, visibility 0s linear 0.25s;
             white-space: nowrap; transform: translateX(-20px); opacity: 0; visibility: hidden; pointer-events: none;
         }
         .menu-item i { font-size: 1.8rem; width: 36px; text-align: center; color: #5c3f28; transition: transform 0.2s; }
         .item-text { font-size: 1.35rem; font-weight: 500; padding-right: 6px; }
-
-        .menu-item.tasks { background: #fef7e0; border-left: 6px solid #e3b87c; }
-        .menu-item.notes { background: #fef2e6; border-left: 6px solid #b9c48b; }
+        .menu-item.tasks   { background: #fef7e0; border-left: 6px solid #e3b87c; }
+        .menu-item.notes   { background: #fef2e6; border-left: 6px solid #b9c48b; }
         .menu-item.reminders { background: #fcefec; border-left: 6px solid #f3b3a2; }
         .menu-item.voice-memo { background: #eef5fc; border-left: 6px solid #8fb9d4; }
-
-        .menu-item:hover { transform: translateX(6px) scale(1.02); background: #fffcf5; box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.05); }
-
+        .menu-item:hover { transform: translateX(6px) scale(1.02); }
         #menu-checkbox:checked ~ .menu-items-container .menu-item {
             transform: translateX(0); opacity: 1; visibility: visible; pointer-events: auto;
-            transition: transform 0.38s cubic-bezier(0.2, 0.9, 0.4, 1.1), opacity 0.3s ease, visibility 0s linear 0s;
+            transition: transform 0.38s cubic-bezier(0.2,0.9,0.4,1.1), opacity 0.3s ease, visibility 0s linear 0s;
         }
         #menu-checkbox:checked ~ .menu-items-container .menu-item:nth-child(1) { transition-delay: 0.02s; }
         #menu-checkbox:checked ~ .menu-items-container .menu-item:nth-child(2) { transition-delay: 0.08s; }
         #menu-checkbox:checked ~ .menu-items-container .menu-item:nth-child(3) { transition-delay: 0.14s; }
         #menu-checkbox:checked ~ .menu-items-container .menu-item:nth-child(4) { transition-delay: 0.2s; }
 
+        /* ===== MOBILE LAYOUT ===== */
+        /* On mobile, sidebar becomes a bottom sheet, main is full screen */
         @media (max-width: 640px) {
+            body { flex-direction: column; overflow: hidden; }
+
+            /* Desktop sidebar becomes mobile bottom sheet */
+            #sidebar {
+                position: fixed; bottom: 0; left: 0; right: 0;
+                width: 100% !important; height: 50vh;
+                border-right: none !important;
+                border-top: 2px solid var(--ink) !important;
+                border-radius: 20px 20px 0 0;
+                transform: translateY(calc(100% - 56px));
+                transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+                z-index: 50;
+                background: rgba(253,248,237,0.97) !important;
+                backdrop-filter: blur(16px);
+                padding-left: 0 !important;
+            }
+            #sidebar.sheet-open { transform: translateY(0); }
+
+            /* Drag handle */
+            #sheet-handle {
+                display: flex; align-items: center; justify-content: center;
+                height: 56px; cursor: pointer; flex-shrink: 0;
+            }
+            #sheet-handle::before {
+                content: ''; display: block; width: 40px; height: 5px;
+                background: rgba(47,36,25,0.3); border-radius: 4px;
+            }
+            #sheet-header { display: none; }
+
+            /* Main takes full height */
+            main { flex: 1; overflow-y: auto; padding-bottom: 70px; }
+
+            /* Show a sticky "All Reminders" tab at bottom */
+            #mobile-tab-bar {
+                display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+                height: 56px; background: #fdf8ed; border-top: 2px solid var(--ink);
+                align-items: center; justify-content: space-around; z-index: 49;
+            }
+            .tab-btn {
+                flex: 1; height: 100%; display: flex; flex-direction: column;
+                align-items: center; justify-content: center; gap: 2px;
+                font-size: 0.65rem; font-weight: bold; cursor: pointer;
+                color: var(--ink); opacity: 0.5; transition: opacity 0.2s; border: none; background: none;
+                font-family: 'Kalam', cursive;
+            }
+            .tab-btn.active { opacity: 1; color: #c0504a; }
+            .tab-btn i { font-size: 1.1rem; }
+
             .menu-item .item-text { font-size: 1.1rem; }
             .menu-item i { font-size: 1.5rem; width: 30px; }
             .menu-item { padding: 6px 12px 6px 12px; gap: 10px; }
             .menu-items-container { left: 78px; gap: 14px; }
             .menu-toggle { width: 64px; height: 64px; }
+
+            #editor-container { padding-bottom: 2rem; }
         }
+
+        @media (min-width: 641px) {
+            #sheet-handle { display: none; }
+            #mobile-tab-bar { display: none; }
+            #sheet-header { display: flex !important; }
+        }
+
+        /* Sync indicator */
+        #sync-status {
+            position: fixed; bottom: 4px; right: 4px;
+            font-size: 0.7rem; font-weight: bold; opacity: 0.5;
+            display: flex; align-items: center; gap: 4px;
+            background: #fdf8ed; padding: 3px 10px; border-radius: 999px;
+            border: 1px solid var(--ink); z-index: 100;
+            transition: opacity 0.5s;
+        }
+
+        /* Count badge on list header */
+        .count-badge {
+            background: var(--accent); border: 1.5px solid var(--ink);
+            border-radius: 999px; font-size: 0.72rem; padding: 0 7px;
+            font-weight: bold; line-height: 1.5;
+        }
+
+        /* Filter tabs */
+        .filter-tab {
+            padding: 4px 10px; border: 1.5px solid #3f2d1b; border-radius: 999px;
+            font-size: 0.75rem; font-weight: bold; cursor: pointer;
+            background: transparent; transition: all 0.15s; font-family: 'Kalam', cursive;
+            white-space: nowrap;
+        }
+        .filter-tab.active { background: var(--accent); }
+
+        /* Empty state */
+        #empty-state { flex-direction: column; gap: 1rem; }
+
+        /* Shake animation for overdue */
+        @keyframes wiggle { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-8deg)} 75%{transform:rotate(8deg)} }
+        .overdue-bell { animation: wiggle 0.5s ease 2; }
     </style>
 </head>
 <body>
 
-    <!-- Handdrawn Side Nav Menu -->
-    <div class="hand-menu">
-        <input type="checkbox" id="menu-checkbox" class="hidden">
-        <label for="menu-checkbox" class="menu-toggle">
-            <div class="burger-icon">
-                <span></span><span></span><span></span>
-            </div>
-        </label>
-        <div class="menu-items-container">
-            <a href="index.html" class="menu-item tasks">
-                <i class="fas fa-check-circle"></i>
-                <span class="item-text">Tasks</span>
-            </a>
-            <a href="notes.html" class="menu-item notes">
-                <i class="fas fa-pen-fancy"></i>
-                <span class="item-text">Notes</span>
-            </a>
-            <a href="reminders.html" class="menu-item reminders">
-                <i class="fas fa-bell"></i>
-                <span class="item-text">Reminders</span>
-            </a>
-            <a href="voice-memos.html" class="menu-item voice-memo">
-                <i class="fas fa-microphone-alt"></i>
-                <span class="item-text">Voice Memo</span>
-            </a>
+<!-- Handdrawn Side Nav -->
+<div class="hand-menu">
+    <input type="checkbox" id="menu-checkbox" class="hidden">
+    <label for="menu-checkbox" class="menu-toggle">
+        <div class="burger-icon"><span></span><span></span><span></span></div>
+    </label>
+    <div class="menu-items-container">
+        <a href="index.html" class="menu-item tasks"><i class="fas fa-check-circle"></i><span class="item-text">Tasks</span></a>
+        <a href="notes.html" class="menu-item notes"><i class="fas fa-pen-fancy"></i><span class="item-text">Notes</span></a>
+        <a href="reminders.html" class="menu-item reminders"><i class="fas fa-bell"></i><span class="item-text">Reminders</span></a>
+        <a href="voice-memos.html" class="menu-item voice-memo"><i class="fas fa-microphone-alt"></i><span class="item-text">Voice Memo</span></a>
+    </div>
+</div>
+
+<!-- Sidebar -->
+<aside id="sidebar" class="w-72 sm:w-80 border-r-2 border-[var(--ink)] flex flex-col bg-[rgba(255,255,255,0.3)] backdrop-blur-sm z-10 shrink-0 pl-20 sm:pl-24">
+    <!-- Mobile drag handle -->
+    <div id="sheet-handle" onclick="toggleSheet()"></div>
+
+    <!-- Header -->
+    <div id="sheet-header" class="p-4 sm:p-5 border-b-2 border-[var(--ink)] flex flex-col gap-3">
+        <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-bold flex items-center gap-2">
+                <i class="fas fa-bell text-[var(--accent)]" id="bell-icon"></i> Reminders
+                <span class="count-badge" id="count-badge">0</span>
+            </h1>
+            <button class="sketch-btn px-3" onclick="createNewReminder()" title="New Reminder">
+                <i data-lucide="plus"></i>
+            </button>
+        </div>
+
+        <!-- Search -->
+        <div class="search-wrap">
+            <i data-lucide="search" class="search-icon w-4 h-4"></i>
+            <input type="text" id="search-input" class="sketch-input" placeholder="Search reminders..." oninput="renderList()">
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="flex gap-2 overflow-x-auto pb-1" style="scrollbar-width:none;">
+            <button class="filter-tab active" data-filter="all" onclick="setFilter('all',this)">All</button>
+            <button class="filter-tab" data-filter="upcoming" onclick="setFilter('upcoming',this)">Upcoming</button>
+            <button class="filter-tab" data-filter="today" onclick="setFilter('today',this)">Today</button>
+            <button class="filter-tab" data-filter="done" onclick="setFilter('done',this)">Done</button>
         </div>
     </div>
 
-    <!-- Sidebar: Reminders List -->
-    <aside class="w-72 sm:w-80 border-r-2 border-[var(--ink)] flex flex-col bg-[rgba(255,255,255,0.3)] backdrop-blur-sm z-10 shrink-0 pl-20 sm:pl-24">
-        <div class="p-4 sm:p-6 border-b-2 border-[var(--ink)] flex justify-between items-center">
-            <h1 class="text-2xl font-bold flex items-center gap-2"><i class="fas fa-bell text-[var(--accent)]"></i> Reminders</h1>
-            <button class="sketch-btn px-3" onclick="createNewReminder()" title="New Reminder"><i data-lucide="plus"></i></button>
-        </div>
-        <div class="flex-1 overflow-y-auto" id="reminders-list">
-            <!-- Reminders injected via JS -->
-        </div>
-    </aside>
+    <div class="flex-1 overflow-y-auto" id="reminders-list"></div>
+</aside>
 
-    <!-- Main Editor -->
-    <main class="flex-1 flex flex-col relative p-4 sm:p-8 overflow-y-auto">
-        <div class="max-w-2xl w-full mx-auto space-y-6" id="editor-container" style="display: none;">
-            
-            <div class="flex justify-between items-end border-b-2 border-[var(--ink)] pb-4">
-                <h2 class="text-2xl font-bold">Reminder Details</h2>
-                <button class="sketch-btn text-red-600 px-3 py-1" onclick="deleteCurrentReminder()"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+<!-- Main Editor -->
+<main class="flex-1 flex flex-col relative p-4 sm:p-8 overflow-y-auto">
+    <div class="max-w-2xl w-full mx-auto space-y-6" id="editor-container" style="display:none;">
+
+        <div class="flex justify-between items-end border-b-2 border-[var(--ink)] pb-4">
+            <h2 class="text-2xl font-bold">Reminder Details</h2>
+            <div class="flex gap-2">
+                <button class="sketch-btn px-3 py-1" onclick="toggleDoneCurrentReminder()" id="done-btn" title="Mark done">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                </button>
+                <button class="sketch-btn text-red-600 px-3 py-1" onclick="deleteCurrentReminder()">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="space-y-5">
+            <!-- Title -->
+            <div>
+                <label class="block font-bold text-sm mb-1 opacity-70">What to remember?</label>
+                <input type="text" id="rem-title" class="sketch-input text-2xl font-bold" placeholder="Buy coffee..." oninput="saveCurrentReminder()">
             </div>
 
-            <div class="space-y-4">
-                <div>
-                    <label class="block font-bold text-sm mb-1 opacity-70">What to remember?</label>
-                    <input type="text" id="rem-title" class="sketch-input text-2xl font-bold" placeholder="Buy coffee..." oninput="saveCurrentReminder()">
-                </div>
+            <!-- Details -->
+            <div>
+                <label class="block font-bold text-sm mb-1 opacity-70">Extra Details</label>
+                <textarea id="rem-details" class="sketch-input min-h-[80px] resize-y" placeholder="Any extra info..." oninput="saveCurrentReminder()"></textarea>
+            </div>
 
-                <div>
-                    <label class="block font-bold text-sm mb-1 opacity-70">Extra Details</label>
-                    <textarea id="rem-details" class="sketch-input min-h-[100px] resize-y" placeholder="Any extra info..." oninput="saveCurrentReminder()"></textarea>
-                </div>
+            <!-- Date / Time -->
+            <div>
+                <label class="block font-bold text-sm mb-1 opacity-70">When?</label>
+                <input type="datetime-local" id="rem-date" class="sketch-input cursor-pointer" oninput="saveCurrentReminder()">
+            </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block font-bold text-sm mb-1 opacity-70">When?</label>
-                        <input type="datetime-local" id="rem-date" class="sketch-input cursor-pointer" oninput="saveCurrentReminder()">
-                    </div>
-                </div>
-
-                <div class="pt-4 flex items-center justify-between border-t-2 border-dashed border-[rgba(0,0,0,0.1)]">
-                    <div class="flex flex-col">
-                        <label class="font-bold text-lg">Push Notification</label>
-                        <span class="text-xs opacity-60">Requires Vercel & Permissions</span>
-                    </div>
-                    <div class="sketch-toggle" id="rem-notify" onclick="toggleReminderPush()"></div>
+            <!-- Priority -->
+            <div>
+                <label class="block font-bold text-sm mb-2 opacity-70">Priority</label>
+                <div class="seg-ctrl" id="priority-ctrl">
+                    <input type="radio" name="priority" id="p-low"    value="low">    <label for="p-low">🟢 Low</label>
+                    <input type="radio" name="priority" id="p-medium" value="medium"> <label for="p-medium">🟡 Medium</label>
+                    <input type="radio" name="priority" id="p-high"   value="high">   <label for="p-high">🔴 High</label>
+                    <input type="radio" name="priority" id="p-urgent" value="urgent"> <label for="p-urgent">🚨 Urgent</label>
                 </div>
             </div>
 
-        </div>
-        
-        <div id="empty-state" class="flex-1 flex items-center justify-center opacity-50 font-bold text-xl flex-col gap-4 text-center px-4">
-            <i class="fas fa-bell text-4xl"></i>
-            <p>Select or create a reminder.</p>
-        </div>
-    </main>
+            <!-- Repeat -->
+            <div>
+                <label class="block font-bold text-sm mb-2 opacity-70">Repeat</label>
+                <div class="seg-ctrl" id="repeat-ctrl">
+                    <input type="radio" name="repeat" id="r-once"    value="once">    <label for="r-once">Once</label>
+                    <input type="radio" name="repeat" id="r-daily"   value="daily">   <label for="r-daily">Daily</label>
+                    <input type="radio" name="repeat" id="r-weekly"  value="weekly">  <label for="r-weekly">Weekly</label>
+                    <input type="radio" name="repeat" id="r-monthly" value="monthly"> <label for="r-monthly">Monthly</label>
+                </div>
+            </div>
 
-    <!-- Sync Indicator -->
-    <div id="sync-status" class="fixed bottom-4 right-4 text-xs font-bold opacity-50 flex items-center gap-1 transition-opacity bg-[var(--paper)] px-3 py-1 rounded-full border-[1px] border-[var(--ink)] z-50">
-        <i data-lucide="cloud-check" class="w-4 h-4"></i> Saved
+            <!-- Push toggle -->
+            <div class="pt-3 flex items-center justify-between border-t-2 border-dashed border-[rgba(0,0,0,0.1)]">
+                <div class="flex flex-col">
+                    <label class="font-bold text-lg">Push Notification</label>
+                    <span class="text-xs opacity-60">Requires browser permissions</span>
+                </div>
+                <div class="sketch-toggle" id="rem-notify" onclick="toggleReminderPush()"></div>
+            </div>
+        </div>
     </div>
 
-    <script>
-        // --- State ---
-        const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
-        const API_URL = 'https://neo-tasks-backend-2.sawyerbobk563.workers.dev'; 
+    <!-- Empty state -->
+    <div id="empty-state" class="flex-1 flex items-center justify-center opacity-50 font-bold text-xl flex-col gap-4 text-center px-4">
+        <i class="fas fa-bell text-4xl"></i>
+        <p>Select or create a reminder.</p>
+        <button class="sketch-btn primary px-5 py-2 text-base" onclick="createNewReminder()" style="opacity:1;">
+            <i data-lucide="plus" class="w-4 h-4"></i> New Reminder
+        </button>
+    </div>
+</main>
 
-        let state = {
-            reminders: [],
-            activeReminderId: null
-        };
-        let authToken = null;
+<!-- Mobile Tab Bar -->
+<div id="mobile-tab-bar">
+    <button class="tab-btn active" id="tab-main" onclick="showMainView()">
+        <i class="fas fa-bell"></i> Reminders
+    </button>
+    <button class="tab-btn" id="tab-list" onclick="showSheetView()">
+        <i class="fas fa-list"></i> All
+    </button>
+    <button class="tab-btn" onclick="createNewReminder()">
+        <i class="fas fa-plus-circle"></i> New
+    </button>
+</div>
 
-        // --- DOM ---
-        const els = {
-            list: document.getElementById('reminders-list'),
-            editor: document.getElementById('editor-container'),
-            empty: document.getElementById('empty-state'),
-            title: document.getElementById('rem-title'),
-            details: document.getElementById('rem-details'),
-            date: document.getElementById('rem-date'),
-            notifyToggle: document.getElementById('rem-notify'),
-            syncStatus: document.getElementById('sync-status')
-        };
+<!-- Sync indicator -->
+<div id="sync-status">
+    <i data-lucide="cloud-check" class="w-3 h-3"></i> Saved
+</div>
 
-        // --- App Boot ---
-        function getCookie(name) {
-            const nameEQ = name + "=";
-            const ca = document.cookie.split(';');
-            for(let i=0;i < ca.length;i++) {
-                let c = ca[i];
-                while (c.charAt(0)==' ') c = c.substring(1,c.length);
-                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+<script>
+// ── State ──────────────────────────────────────────────
+const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
+const API_URL = 'https://neo-tasks-backend-2.sawyerbobk563.workers.dev';
+
+let state = { reminders: [], activeReminderId: null };
+let authToken = null;
+let activeFilter = 'all';
+let isMobile = () => window.innerWidth <= 640;
+
+// ── DOM refs ───────────────────────────────────────────
+const els = {
+    list:        document.getElementById('reminders-list'),
+    editor:      document.getElementById('editor-container'),
+    empty:       document.getElementById('empty-state'),
+    title:       document.getElementById('rem-title'),
+    details:     document.getElementById('rem-details'),
+    date:        document.getElementById('rem-date'),
+    notifyToggle:document.getElementById('rem-notify'),
+    syncStatus:  document.getElementById('sync-status'),
+    countBadge:  document.getElementById('count-badge'),
+    searchInput: document.getElementById('search-input'),
+    doneBtn:     document.getElementById('done-btn'),
+    sidebar:     document.getElementById('sidebar'),
+};
+
+// ── Boot ───────────────────────────────────────────────
+function getCookie(name) {
+    const nameEQ = name + '=';
+    for (let c of document.cookie.split(';')) {
+        c = c.trim();
+        if (c.startsWith(nameEQ)) return c.substring(nameEQ.length);
+    }
+    return null;
+}
+
+function init() {
+    lucide.createIcons();
+    authToken = getCookie('auth_token');
+    const saved = localStorage.getItem('neo-reminders-state');
+    if (saved) {
+        try { state = JSON.parse(saved); } catch(e) { state = { reminders: [], activeReminderId: null }; }
+    }
+    // Migrate old items without new fields
+    state.reminders.forEach(r => {
+        if (!r.priority) r.priority = 'medium';
+        if (!r.repeat)   r.repeat = 'once';
+        if (r.done === undefined) r.done = false;
+    });
+    if (state.reminders.length > 0 && !state.activeReminderId) {
+        state.activeReminderId = state.reminders[0].id;
+    }
+    renderList();
+    loadActiveReminder();
+    if (authToken) pullReminders();
+    setupPriorityChange();
+    setupRepeatChange();
+}
+
+// ── Create ─────────────────────────────────────────────
+function createNewReminder() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const newR = {
+        id: generateId(),
+        title: '', details: '',
+        remindAt: now.toISOString().slice(0,16),
+        priority: 'medium', repeat: 'once',
+        pushNotify: false, notified: false, done: false,
+        updatedAt: Date.now()
+    };
+    state.reminders.unshift(newR);
+    state.activeReminderId = newR.id;
+    renderList();
+    loadActiveReminder();
+    els.title.focus();
+    if (isMobile()) showMainView();
+    debouncedSave();
+}
+
+// ── Render list ────────────────────────────────────────
+function getFiltered() {
+    const q = (els.searchInput.value || '').toLowerCase();
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEnd   = new Date(todayStart.getTime() + 86400000);
+
+    return state.reminders
+        .filter(r => {
+            if (q && !r.title.toLowerCase().includes(q) && !r.details.toLowerCase().includes(q)) return false;
+            if (activeFilter === 'done')     return r.done;
+            if (activeFilter === 'upcoming') return !r.done && new Date(r.remindAt) >= now;
+            if (activeFilter === 'today') {
+                const t = new Date(r.remindAt);
+                return !r.done && t >= todayStart && t < todayEnd;
             }
-            return null;
-        }
+            return true;
+        })
+        .sort((a,b) => new Date(a.remindAt) - new Date(b.remindAt));
+}
 
-        function init() {
-            lucide.createIcons();
-            authToken = getCookie('auth_token');
-            
-            // Load local
-            const saved = localStorage.getItem('neo-reminders-state');
-            if (saved) {
-                state = JSON.parse(saved);
-            }
+const PRIORITY_CLASS = { low:'badge-low', medium:'badge-medium', high:'badge-high', urgent:'badge-urgent' };
+const PRIORITY_LABEL = { low:'Low', medium:'Medium', high:'High', urgent:'Urgent!' };
+const REPEAT_ICON = { once:'', daily:'↻ Daily', weekly:'↻ Weekly', monthly:'↻ Monthly' };
 
-            if (state.reminders.length > 0) {
-                if(!state.activeReminderId) state.activeReminderId = state.reminders[0].id;
-                renderList();
-                loadActiveReminder();
-            } else {
-                renderList();
-            }
+function renderList() {
+    const now = Date.now();
+    const items = getFiltered();
+    els.countBadge.textContent = state.reminders.filter(r => !r.done).length;
 
-            // Pull cloud data
-            if(authToken) pullReminders();
-        }
+    if (items.length === 0) {
+        els.list.innerHTML = `<div class="p-6 text-center opacity-40 font-bold text-sm">No reminders here.</div>`;
+        lucide.createIcons();
+        return;
+    }
 
-        // --- Core Logic ---
-        function createNewReminder() {
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            
-            const newReminder = {
-                id: generateId(),
-                title: '',
-                details: '',
-                remindAt: now.toISOString().slice(0,16),
-                pushNotify: false,
-                notified: false,
-                updatedAt: Date.now()
-            };
-            state.reminders.unshift(newReminder);
-            state.activeReminderId = newReminder.id;
-            
-            renderList();
-            loadActiveReminder();
-            els.title.focus();
-            debouncedSave();
-        }
+    els.list.innerHTML = items.map(r => {
+        const isExpired = !r.done && new Date(r.remindAt).getTime() < now;
+        const isActive  = r.id === state.activeReminderId;
+        const dateStr   = new Date(r.remindAt).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+        const pClass    = PRIORITY_CLASS[r.priority] || 'badge-medium';
+        const pLabel    = PRIORITY_LABEL[r.priority] || '';
+        const repLabel  = REPEAT_ICON[r.repeat] || '';
+        return `
+        <div class="reminder-item ${isActive?'active':''} ${isExpired?'expired':''} ${r.done?'done':''}"
+             onclick="selectReminder('${r.id}')"
+             data-id="${r.id}">
+            <div class="check-circle ${r.done?'checked':''}" onclick="event.stopPropagation(); toggleDone('${r.id}')">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 6l3 3 5-5" stroke="#2f2419" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="item-body">
+                <div class="item-title">${escapeHTML(r.title || 'Untitled Reminder')}</div>
+                <div class="item-meta">
+                    <i data-lucide="clock" class="w-3 h-3"></i>${dateStr}
+                    <span class="badge ${pClass}">${pLabel}</span>
+                    ${repLabel ? `<span style="opacity:0.7">${repLabel}</span>` : ''}
+                    ${r.pushNotify ? '<i data-lucide="bell" class="w-3 h-3" style="color:var(--accent)"></i>' : ''}
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+    lucide.createIcons();
+    setupSwipe();
+}
 
-        function renderList() {
-            const now = new Date().getTime();
-            els.list.innerHTML = state.reminders.sort((a,b) => new Date(a.remindAt) - new Date(b.remindAt)).map(r => {
-                const remTime = new Date(r.remindAt).getTime();
-                const isExpired = remTime < now;
-                
-                return `
-                    <div class="reminder-item ${r.id === state.activeReminderId ? 'active' : ''} ${isExpired ? 'expired' : ''}" onclick="selectReminder('${r.id}')">
-                        <span class="font-bold text-lg leading-tight truncate">${escapeHTML(r.title || 'Untitled Reminder')}</span>
-                        <div class="flex items-center gap-2 text-xs font-bold opacity-70">
-                            <i data-lucide="clock" class="w-3 h-3"></i> 
-                            ${new Date(r.remindAt).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}
-                            ${r.pushNotify ? '<i data-lucide="bell" class="w-3 h-3 ml-1 text-[var(--accent)]"></i>' : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            lucide.createIcons();
-        }
-
-        function selectReminder(id) {
-            state.activeReminderId = id;
-            renderList();
-            loadActiveReminder();
-        }
-
-        function loadActiveReminder() {
-            const reminder = state.reminders.find(r => r.id === state.activeReminderId);
-            if (reminder) {
-                els.empty.style.display = 'none';
-                els.editor.style.display = 'block';
-                
-                els.title.value = reminder.title;
-                els.details.value = reminder.details;
-                els.date.value = reminder.remindAt;
-                
-                if (reminder.pushNotify) els.notifyToggle.classList.add('checked');
-                else els.notifyToggle.classList.remove('checked');
-            } else {
-                els.empty.style.display = 'flex';
-                els.editor.style.display = 'none';
-            }
-        }
-
-        function saveCurrentReminder() {
-            const reminder = state.reminders.find(r => r.id === state.activeReminderId);
-            if (reminder) {
-                reminder.title = els.title.value;
-                reminder.details = els.details.value;
-                
-                // If date changed, reset notified flag
-                if (reminder.remindAt !== els.date.value) {
-                    reminder.notified = false;
-                }
-                reminder.remindAt = els.date.value;
-                
-                reminder.updatedAt = Date.now();
-                renderList(); 
-                debouncedSave();
-            }
-        }
-
-        async function toggleReminderPush() {
-            const reminder = state.reminders.find(r => r.id === state.activeReminderId);
-            if (!reminder) return;
-
-            reminder.pushNotify = !reminder.pushNotify;
-            
-            if (reminder.pushNotify) {
-                els.notifyToggle.classList.add('checked');
-                // Request push permissions via browser (Vercel prep)
-                if ('Notification' in window && Notification.permission !== 'granted') {
-                    const perm = await Notification.requestPermission();
-                    if (perm !== 'granted') {
-                        reminder.pushNotify = false;
-                        els.notifyToggle.classList.remove('checked');
-                        alert("Notification permission denied.");
-                    }
-                }
-            } else {
-                els.notifyToggle.classList.remove('checked');
-            }
-            saveCurrentReminder();
-        }
-
-        function deleteCurrentReminder() {
-            if(confirm("Delete this reminder?")) {
-                state.reminders = state.reminders.filter(r => r.id !== state.activeReminderId);
-                if (state.reminders.length > 0) {
-                    selectReminder(state.reminders[0].id);
-                } else {
-                    state.activeReminderId = null;
-                    loadActiveReminder();
-                    renderList();
-                }
-                debouncedSave();
-            }
-        }
-
-        function escapeHTML(str) { 
-            const p = document.createElement('p'); p.appendChild(document.createTextNode(str)); return p.innerHTML; 
-        }
-
-        // --- Storage & Cloudflare Sync ---
-        let syncTimer = null;
-        function debouncedSave() {
-            clearTimeout(syncTimer);
-            syncTimer = setTimeout(() => { saveStateAndSync(); }, 1500);
-        }
-
-        function saveStateAndSync() {
-            localStorage.setItem('neo-reminders-state', JSON.stringify(state));
-            if(authToken) pushReminders();
-        }
-
-        function showSyncStatus(type) {
-            if(type === 'syncing') els.syncStatus.innerHTML = '<i data-lucide="loader" class="w-3 h-3 animate-spin"></i> Syncing...';
-            if(type === 'saved') els.syncStatus.innerHTML = '<i data-lucide="cloud-check" class="w-3 h-3 text-green-600"></i> Saved to Cloud';
-            if(type === 'error') els.syncStatus.innerHTML = '<i data-lucide="alert-circle" class="w-3 h-3 text-red-600"></i> Offline';
-            lucide.createIcons();
-            els.syncStatus.style.opacity = 1;
-            setTimeout(() => els.syncStatus.style.opacity = 0.5, 3000);
-        }
-
-        async function pullReminders() {
-            showSyncStatus('syncing');
-            try {
-                const response = await fetch(`${API_URL}/api/reminders-sync`, { method: 'GET', headers: { 'Authorization': `Bearer ${authToken}` }});
-                const data = await response.json();
-                if (data.success && data.serverData && data.serverData.reminders) {
-                    state.reminders = data.serverData.reminders;
-                    if(!state.reminders.find(r => r.id === state.activeReminderId) && state.reminders.length > 0) {
-                        state.activeReminderId = state.reminders[0].id;
+// ── Swipe to delete (mobile) ───────────────────────────
+function setupSwipe() {
+    if (!isMobile()) return;
+    document.querySelectorAll('.reminder-item').forEach(el => {
+        let startX = 0, dx = 0, swiping = false;
+        el.addEventListener('touchstart', e => {
+            startX = e.touches[0].clientX; dx = 0; swiping = false;
+        }, {passive:true});
+        el.addEventListener('touchmove', e => {
+            dx = e.touches[0].clientX - startX;
+            if (dx < -10) { swiping = true; el.style.transform = `translateX(${Math.max(dx,-70)}px)`; }
+        }, {passive:true});
+        el.addEventListener('touchend', () => {
+            if (swiping && dx < -50) {
+                el.style.transform = 'translateX(-70px)';
+                el.style.background = 'rgba(229,57,53,0.15)';
+                setTimeout(() => {
+                    const id = el.dataset.id;
+                    state.reminders = state.reminders.filter(r => r.id !== id);
+                    if (state.activeReminderId === id) {
+                        state.activeReminderId = state.reminders[0]?.id || null;
                     }
                     renderList();
                     loadActiveReminder();
-                    showSyncStatus('saved');
-                }
-            } catch (err) { showSyncStatus('error'); }
-        }
-
-        async function pushReminders() {
-            showSyncStatus('syncing');
-            try {
-                const response = await fetch(`${API_URL}/api/reminders-sync`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-                    body: JSON.stringify({ reminders: state.reminders })
-                });
-                if(response.ok) showSyncStatus('saved');
-                else showSyncStatus('error');
-            } catch (err) { showSyncStatus('error'); }
-        }
-
-        // Local Background Checker for Alarms
-        function checkAlarms() {
-            if (!("Notification" in window) || Notification.permission !== "granted") return;
-            const now = new Date();
-            state.reminders.forEach(rem => {
-                if (rem.pushNotify && rem.remindAt && !rem.notified) {
-                    const due = new Date(rem.remindAt);
-                    if (due <= now) {
-                        new Notification("Reminder", { body: rem.title || "You have a reminder!" });
-                        rem.notified = true;
-                        debouncedSave();
-                    }
-                }
-            });
-        }
-        setInterval(checkAlarms, 60000); // Check every minute
-
-        // Menus click outside handler
-        document.addEventListener('click', function(event) {
-            const menuContainer = document.querySelector('.hand-menu');
-            const menuCheckbox = document.getElementById('menu-checkbox');
-            if (menuContainer && !menuContainer.contains(event.target) && menuCheckbox.checked) {
-                menuCheckbox.checked = false;
+                    debouncedSave();
+                }, 300);
+            } else {
+                el.style.transform = '';
             }
         });
+    });
+}
 
-        // Start
-        init();
+// ── Select / Load ──────────────────────────────────────
+function selectReminder(id) {
+    state.activeReminderId = id;
+    renderList();
+    loadActiveReminder();
+    if (isMobile()) showMainView();
+}
 
-    </script>
+function loadActiveReminder() {
+    const r = state.reminders.find(r => r.id === state.activeReminderId);
+    if (r) {
+        els.empty.style.display  = 'none';
+        els.editor.style.display = 'block';
+        els.title.value   = r.title;
+        els.details.value = r.details;
+        els.date.value    = r.remindAt;
+        els.notifyToggle.classList.toggle('checked', !!r.pushNotify);
+
+        // Priority radio
+        const pRadio = document.querySelector(`input[name="priority"][value="${r.priority || 'medium'}"]`);
+        if (pRadio) pRadio.checked = true;
+
+        // Repeat radio
+        const rRadio = document.querySelector(`input[name="repeat"][value="${r.repeat || 'once'}"]`);
+        if (rRadio) rRadio.checked = true;
+
+        // Done button appearance
+        els.doneBtn.title = r.done ? 'Mark undone' : 'Mark done';
+        els.doneBtn.style.background = r.done ? 'var(--accent)' : '';
+    } else {
+        els.empty.style.display  = 'flex';
+        els.editor.style.display = 'none';
+    }
+}
+
+// ── Save ───────────────────────────────────────────────
+function saveCurrentReminder() {
+    const r = state.reminders.find(r => r.id === state.activeReminderId);
+    if (!r) return;
+    r.title   = els.title.value;
+    r.details = els.details.value;
+    if (r.remindAt !== els.date.value) r.notified = false;
+    r.remindAt  = els.date.value;
+    r.updatedAt = Date.now();
+    renderList();
+    debouncedSave();
+}
+
+function setupPriorityChange() {
+    document.querySelectorAll('input[name="priority"]').forEach(el => {
+        el.addEventListener('change', () => {
+            const r = state.reminders.find(r => r.id === state.activeReminderId);
+            if (r) { r.priority = el.value; r.updatedAt = Date.now(); renderList(); debouncedSave(); }
+        });
+    });
+}
+
+function setupRepeatChange() {
+    document.querySelectorAll('input[name="repeat"]').forEach(el => {
+        el.addEventListener('change', () => {
+            const r = state.reminders.find(r => r.id === state.activeReminderId);
+            if (r) { r.repeat = el.value; r.updatedAt = Date.now(); renderList(); debouncedSave(); }
+        });
+    });
+}
+
+// ── Toggle done ────────────────────────────────────────
+function toggleDone(id) {
+    const r = state.reminders.find(r => r.id === id);
+    if (!r) return;
+    r.done = !r.done;
+    r.updatedAt = Date.now();
+    renderList();
+    if (id === state.activeReminderId) loadActiveReminder();
+    debouncedSave();
+}
+
+function toggleDoneCurrentReminder() {
+    if (state.activeReminderId) toggleDone(state.activeReminderId);
+}
+
+// ── Toggle push ────────────────────────────────────────
+async function toggleReminderPush() {
+    const r = state.reminders.find(r => r.id === state.activeReminderId);
+    if (!r) return;
+    r.pushNotify = !r.pushNotify;
+    if (r.pushNotify && 'Notification' in window && Notification.permission !== 'granted') {
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') {
+            r.pushNotify = false;
+            alert('Notification permission denied.');
+        }
+    }
+    els.notifyToggle.classList.toggle('checked', r.pushNotify);
+    r.updatedAt = Date.now();
+    renderList();
+    debouncedSave();
+}
+
+// ── Delete ─────────────────────────────────────────────
+function deleteCurrentReminder() {
+    if (!state.activeReminderId) return;
+    if (!confirm('Delete this reminder?')) return;
+    state.reminders = state.reminders.filter(r => r.id !== state.activeReminderId);
+    state.activeReminderId = state.reminders[0]?.id || null;
+    renderList();
+    loadActiveReminder();
+    debouncedSave();
+}
+
+// ── Filter ─────────────────────────────────────────────
+function setFilter(f, btn) {
+    activeFilter = f;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderList();
+}
+
+// ── Mobile sheet ───────────────────────────────────────
+function toggleSheet() {
+    els.sidebar.classList.toggle('sheet-open');
+    document.getElementById('tab-list').classList.toggle('active', els.sidebar.classList.contains('sheet-open'));
+    document.getElementById('tab-main').classList.toggle('active', !els.sidebar.classList.contains('sheet-open'));
+}
+
+function showMainView() {
+    els.sidebar.classList.remove('sheet-open');
+    document.getElementById('tab-main').classList.add('active');
+    document.getElementById('tab-list').classList.remove('active');
+}
+
+function showSheetView() {
+    els.sidebar.classList.add('sheet-open');
+    document.getElementById('tab-list').classList.add('active');
+    document.getElementById('tab-main').classList.remove('active');
+}
+
+// ── Helpers ────────────────────────────────────────────
+function escapeHTML(str) {
+    const p = document.createElement('p');
+    p.appendChild(document.createTextNode(str));
+    return p.innerHTML;
+}
+
+// ── Debounced save / sync ──────────────────────────────
+let syncTimer = null;
+function debouncedSave() {
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(saveStateAndSync, 1500);
+}
+
+function saveStateAndSync() {
+    localStorage.setItem('neo-reminders-state', JSON.stringify(state));
+    if (authToken) pushReminders();
+}
+
+function showSyncStatus(type) {
+    const map = {
+        syncing: '<i data-lucide="loader" class="w-3 h-3 animate-spin"></i> Syncing...',
+        saved:   '<i data-lucide="cloud-check" class="w-3 h-3" style="color:#16a34a"></i> Saved',
+        error:   '<i data-lucide="alert-circle" class="w-3 h-3" style="color:#dc2626"></i> Offline'
+    };
+    els.syncStatus.innerHTML = map[type] || '';
+    lucide.createIcons();
+    els.syncStatus.style.opacity = 1;
+    setTimeout(() => els.syncStatus.style.opacity = 0.5, 3000);
+}
+
+async function pullReminders() {
+    showSyncStatus('syncing');
+    try {
+        const res  = await fetch(`${API_URL}/api/reminders-sync`, { headers: { Authorization: `Bearer ${authToken}` }});
+        const data = await res.json();
+        if (data.success && data.serverData?.reminders) {
+            state.reminders = data.serverData.reminders;
+            state.reminders.forEach(r => {
+                if (!r.priority) r.priority = 'medium';
+                if (!r.repeat)   r.repeat   = 'once';
+                if (r.done === undefined) r.done = false;
+            });
+            if (!state.reminders.find(r => r.id === state.activeReminderId)) {
+                state.activeReminderId = state.reminders[0]?.id || null;
+            }
+            renderList();
+            loadActiveReminder();
+            showSyncStatus('saved');
+        }
+    } catch { showSyncStatus('error'); }
+}
+
+async function pushReminders() {
+    showSyncStatus('syncing');
+    try {
+        const res = await fetch(`${API_URL}/api/reminders-sync`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+            body: JSON.stringify({ reminders: state.reminders })
+        });
+        showSyncStatus(res.ok ? 'saved' : 'error');
+    } catch { showSyncStatus('error'); }
+}
+
+// ── Alarm checker ──────────────────────────────────────
+function checkAlarms() {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const now = new Date();
+    let changed = false;
+    state.reminders.forEach(r => {
+        if (r.pushNotify && r.remindAt && !r.notified && !r.done) {
+            if (new Date(r.remindAt) <= now) {
+                new Notification('Reminder 🔔', { body: r.title || 'You have a reminder!' });
+                r.notified = true;
+                // Handle repeats
+                if (r.repeat !== 'once') {
+                    const next = new Date(r.remindAt);
+                    if (r.repeat === 'daily')   next.setDate(next.getDate() + 1);
+                    if (r.repeat === 'weekly')  next.setDate(next.getDate() + 7);
+                    if (r.repeat === 'monthly') next.setMonth(next.getMonth() + 1);
+                    r.remindAt = next.toISOString().slice(0,16);
+                    r.notified = false;
+                }
+                changed = true;
+            }
+        }
+    });
+    if (changed) { renderList(); debouncedSave(); }
+}
+setInterval(checkAlarms, 30000);
+
+// ── Close menu on outside click ────────────────────────
+document.addEventListener('click', e => {
+    const menu = document.querySelector('.hand-menu');
+    const cb   = document.getElementById('menu-checkbox');
+    if (menu && !menu.contains(e.target) && cb.checked) cb.checked = false;
+});
+
+init();
+</script>
 </body>
 </html>
